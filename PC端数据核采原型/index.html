@@ -1,0 +1,3145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>数据核采 · PC端原型</title>
+  <style>
+    :root {
+      --primary: #1677ff;
+      --primary-dark: #0958d9;
+      --bg: #f0f2f5;
+      --side: #fff;
+      --text: #262626;
+      --text-2: #8c8c8c;
+      --border: #f0f0f0;
+      --header-h: 56px;
+      --side-w: 220px;
+      --danger: #ff4d4f;
+      --success: #52c41a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      min-height: 100vh;
+    }
+    a { color: var(--primary); text-decoration: none; cursor: pointer; }
+    a:hover { color: var(--primary-dark); }
+
+    /* 顶栏 */
+    .topbar {
+      height: var(--header-h);
+      background: linear-gradient(90deg, #0b5fff 0%, #1677ff 45%, #3d8bfd 100%);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      margin-right: 40px;
+      white-space: nowrap;
+    }
+    .brand-logo {
+      width: 28px; height: 28px;
+      border-radius: 6px;
+      background: rgba(255,255,255,.95);
+      color: #1677ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 14px;
+    }
+    .top-nav { display: flex; gap: 4px; flex: 1; overflow: hidden; }
+    .top-nav span {
+      padding: 8px 14px;
+      border-radius: 4px 4px 0 0;
+      font-size: 14px;
+      opacity: .9;
+      cursor: pointer;
+    }
+    .top-nav span.active {
+      background: rgba(255,255,255,.18);
+      font-weight: 600;
+      opacity: 1;
+    }
+    .btn.disabled, .btn:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+    .menu-group-title.level1 {
+      color: #1677ff;
+      font-size: 13px;
+    }
+    .top-user { font-size: 13px; opacity: .95; margin-left: 12px; white-space: nowrap; }
+
+    .layout { display: flex; min-height: calc(100vh - var(--header-h)); }
+
+    /* 侧栏 */
+    .sidebar {
+      width: var(--side-w);
+      background: var(--side);
+      border-right: 1px solid #e8e8e8;
+      padding: 12px 0 24px;
+      flex-shrink: 0;
+      overflow-y: auto;
+    }
+    .menu-item, .menu-group-title, .menu-parent {
+      padding: 10px 16px 10px 20px;
+      font-size: 14px;
+      color: #595959;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      user-select: none;
+      line-height: 1.4;
+    }
+    .menu-item:hover, .menu-parent:hover { background: #f5f5f5; color: var(--primary); }
+    .menu-item { color: #595959; font-weight: 400; }
+    .menu-item.active {
+      color: var(--primary) !important;
+      font-weight: 500;
+    }
+    /* 占位菜单：灰底区分，提示本期未展开 */
+    .menu-item.menu-placeholder {
+      background: #f5f5f5;
+      color: #8c8c8c;
+    }
+    .menu-item.menu-placeholder:hover {
+      background: #ebebeb;
+      color: #595959;
+    }
+    .menu-item.menu-placeholder.active {
+      background: #e8e8e8;
+      color: #595959 !important;
+      font-weight: 500;
+    }
+    .menu-parent.menu-placeholder {
+      background: #f5f5f5;
+      color: #8c8c8c;
+      font-weight: 400;
+    }
+    .menu-parent.menu-placeholder:hover {
+      background: #ebebeb;
+      color: #595959;
+    }
+    .menu-group-title {
+      font-weight: 600;
+      color: #262626;
+      cursor: default;
+      margin-top: 4px;
+    }
+    /* 一级分组（可展开）：任务管理 / 我的任务 */
+    .menu-parent {
+      font-weight: 500;
+      color: #262626;
+      justify-content: space-between;
+    }
+    .menu-parent .arrow {
+      font-size: 10px;
+      color: #bfbfbf;
+      transition: transform .15s;
+    }
+    .menu-parent.open .arrow { transform: rotate(0deg); }
+    .menu-parent:not(.open) .arrow { transform: rotate(-90deg); }
+    .menu-children { display: none; }
+    .menu-children.open { display: block; }
+    /* 二级：我发起的、辖区任务、我的任务、周期任务 */
+    .menu-l2 { padding-left: 36px; font-size: 14px; }
+    /* 三级：待办任务、历史任务 */
+    .menu-l3 { padding-left: 52px; font-size: 14px; }
+    .menu-l3.active {
+      color: var(--primary);
+      font-weight: 500;
+    }
+    .menu-divider {
+      height: 1px;
+      background: #f0f0f0;
+      margin: 8px 16px;
+    }
+    .menu-badge {
+      margin-left: auto;
+      background: #ff4d4f;
+      color: #fff;
+      font-size: 11px;
+      padding: 0 6px;
+      border-radius: 8px;
+      font-weight: 500;
+    }
+
+    .main {
+      flex: 1;
+      min-width: 0;
+      padding: 16px 20px 32px;
+      overflow: auto;
+    }
+
+    .view { display: none; }
+    .view.active { display: block; }
+
+    /* 开发说明 */
+    .dev-tip {
+      background: #fff7e6;
+      border: 1px solid #ffe58f;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 12px;
+      color: #ad6800;
+      margin-bottom: 12px;
+      line-height: 1.5;
+    }
+    .dev-tip .dev-label {
+      color: #f5222d;
+      font-weight: 600;
+      margin-right: 4px;
+    }
+
+    /* Tabs */
+    .tabs-line {
+      display: flex;
+      gap: 24px;
+      border-bottom: 1px solid #e8e8e8;
+      margin-bottom: 12px;
+      background: #fff;
+      padding: 0 16px;
+      border-radius: 8px 8px 0 0;
+    }
+    .tabs-line .tab {
+      padding: 12px 4px;
+      font-size: 14px;
+      color: #595959;
+      cursor: pointer;
+      position: relative;
+      border: none;
+      background: none;
+    }
+    .tabs-line .tab.active {
+      color: var(--primary);
+      font-weight: 600;
+    }
+    .tabs-line .tab.active::after {
+      content: "";
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      height: 2px;
+      background: var(--primary);
+    }
+    .sub-tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 12px;
+      background: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+      width: fit-content;
+      border: 1px solid #e8e8e8;
+    }
+    .sub-tabs .tab {
+      padding: 8px 20px;
+      font-size: 13px;
+      border: none;
+      background: #fff;
+      color: #595959;
+      cursor: pointer;
+    }
+    .sub-tabs .tab.active {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .panel {
+      background: #fff;
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 1px 2px rgba(0,0,0,.03);
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    .toolbar .grow { flex: 1; }
+    input[type="text"], input[type="date"], input[type="number"], input[type="tel"],
+    select, textarea {
+      height: 32px;
+      border: 1px solid #d9d9d9;
+      border-radius: 6px;
+      padding: 0 10px;
+      font-size: 13px;
+      outline: none;
+      font-family: inherit;
+      background: #fff;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--primary); }
+    textarea { height: auto; padding: 8px 10px; min-height: 72px; resize: vertical; width: 100%; }
+    .btn {
+      height: 32px;
+      padding: 0 14px;
+      border-radius: 6px;
+      border: 1px solid #d9d9d9;
+      background: #fff;
+      font-size: 13px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .btn:hover { color: var(--primary); border-color: var(--primary); }
+    .btn-primary {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+    .btn-primary:hover { background: var(--primary-dark); color: #fff; }
+    .btn-danger { color: var(--danger); border-color: #ffccc7; }
+    .btn-lg { height: 36px; padding: 0 20px; font-size: 14px; }
+    .btn-link {
+      border: none;
+      background: none;
+      color: var(--primary);
+      padding: 0 6px;
+      height: auto;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .btn-link.danger { color: var(--danger); }
+
+    table.data {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    table.data th {
+      background: #e6f4ff;
+      color: #262626;
+      font-weight: 600;
+      text-align: left;
+      padding: 10px 12px;
+      white-space: nowrap;
+      border-bottom: 1px solid #d6e4ff;
+    }
+    table.data td {
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+      color: #595959;
+      vertical-align: middle;
+    }
+    table.data tr:hover td { background: #fafafa; }
+    .tag {
+      display: inline-block;
+      padding: 0 8px;
+      height: 22px;
+      line-height: 22px;
+      border-radius: 4px;
+      font-size: 12px;
+      border: 1px solid transparent;
+    }
+    .tag-blue { background: #e6f4ff; color: var(--primary); border-color: #91caff; }
+    .tag-orange { background: #fff7e6; color: #d46b08; border-color: #ffd591; }
+    .tag-green { background: #f6ffed; color: #389e0d; border-color: #b7eb8f; }
+    .tag-gray { background: #f5f5f5; color: #8c8c8c; border-color: #d9d9d9; }
+
+    .pager {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 8px;
+      margin-top: 14px;
+      font-size: 13px;
+      color: var(--text-2);
+    }
+
+    /* 表单页：左右分栏仿创建任务 */
+    .form-page {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 360px;
+      gap: 0;
+      background: #fff;
+      border-radius: 8px;
+      min-height: 640px;
+      overflow: hidden;
+      box-shadow: 0 1px 2px rgba(0,0,0,.03);
+    }
+    .form-left { padding: 24px 28px 40px; border-right: 1px solid #f0f0f0; }
+    .form-right {
+      background: linear-gradient(180deg, #f7fbff 0%, #eef6ff 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .form-right .illus {
+      width: 220px;
+      height: 220px;
+      border-radius: 24px;
+      background: #d6eaff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 12px 40px rgba(22,119,255,.15);
+      font-size: 64px;
+    }
+    .form-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+    .form-row {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 16px;
+      gap: 12px;
+    }
+    .form-label {
+      width: 100px;
+      flex-shrink: 0;
+      text-align: right;
+      line-height: 32px;
+      font-size: 13px;
+      color: #595959;
+    }
+    .form-label .req { color: var(--danger); margin-right: 2px; }
+    .form-control { flex: 1; min-width: 0; max-width: 480px; }
+    .form-control.full { max-width: none; }
+    .form-actions {
+      margin-top: 28px;
+      padding-left: 112px;
+      display: flex;
+      gap: 10px;
+    }
+
+    /* 字段匹配区 */
+    .map-box {
+      margin-top: 8px;
+      border: 1px solid #e8e8e8;
+      border-radius: 8px;
+      overflow: hidden;
+      max-width: 720px;
+    }
+    .map-box .map-hd {
+      background: #fafafa;
+      padding: 10px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      border-bottom: 1px solid #f0f0f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .map-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .map-table th {
+      background: #e6f4ff;
+      padding: 8px 12px;
+      text-align: left;
+      font-weight: 600;
+    }
+    .map-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid #f5f5f5;
+    }
+    .map-table select { width: 100%; max-width: 220px; }
+
+    /* 进度统计 */
+    .stat-cards {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .stat-card {
+      background: #f7f9fc;
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+    }
+    .stat-card .n {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 4px;
+    }
+    .stat-card .l { font-size: 13px; color: var(--text-2); }
+
+    .drawer-mask {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.45);
+      z-index: 200;
+      display: none;
+      justify-content: flex-end;
+    }
+    .drawer-mask.show { display: flex; }
+    .drawer {
+      width: 480px;
+      max-width: 100%;
+      background: #fff;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      animation: slideIn .2s ease;
+    }
+    .drawer.wide { width: 560px; }
+    .drawer.xl { width: min(720px, 100%); }
+    @keyframes slideIn {
+      from { transform: translateX(100%); }
+      to { transform: translateX(0); }
+    }
+    .drawer-hd {
+      height: 56px;
+      border-bottom: 1px solid #f0f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      font-size: 16px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+    .drawer-hd .hd-actions { display: flex; gap: 8px; align-items: center; }
+    .drawer-body { flex: 1; overflow: auto; padding: 16px 20px; }
+    .drawer-ft {
+      padding: 12px 20px;
+      border-top: 1px solid #f0f0f0;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+    .btn-soft-danger {
+      background: #fff1f0;
+      border-color: #ffccc7;
+      color: #ff4d4f;
+    }
+    .btn-soft-danger:hover { color: #cf1322; border-color: #ffa39e; }
+    /* 仿原新增核查表单行 */
+    .df-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 18px;
+      gap: 12px;
+    }
+    .df-label {
+      width: 110px;
+      flex-shrink: 0;
+      text-align: right;
+      font-size: 13px;
+      color: #595959;
+    }
+    .df-label .req { color: var(--danger); margin-right: 2px; }
+    .df-ctrl { flex: 1; min-width: 0; }
+    .df-ctrl input, .df-ctrl select { width: 100%; height: 36px; }
+    .df-link-row {
+      display: flex;
+      align-items: center;
+      height: 36px;
+      border: 1px solid #d9d9d9;
+      border-radius: 6px;
+      padding: 0 12px;
+      cursor: pointer;
+      background: #fff;
+      font-size: 13px;
+      color: #8c8c8c;
+    }
+    .df-link-row:hover { border-color: var(--primary); }
+    .df-link-row.has-val { color: #262626; }
+    .df-link-row .arrow { margin-left: auto; color: #bfbfbf; letter-spacing: -2px; }
+    .cascade-box { display: flex; gap: 8px; }
+    .cascade-box select { flex: 1; height: 36px; }
+    .hc-section-tag {
+      display: inline-block;
+      background: #e6f4ff;
+      color: #1677ff;
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 12px;
+    }
+    .hc-hint { font-size: 13px; color: #8c8c8c; margin-bottom: 12px; }
+    /* 新增字段面板 */
+    .selected-box {
+      border: 1px solid #e8e8e8;
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+      min-height: 64px;
+      background: #fafafa;
+    }
+    .selected-label { font-size: 13px; color: #595959; margin-bottom: 8px; }
+    .selected-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+    .selected-tags .tag-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #e6f4ff;
+      color: #1677ff;
+      border: 1px solid #91caff;
+      border-radius: 4px;
+      padding: 2px 8px;
+      font-size: 12px;
+    }
+    .selected-tags .tag-chip button {
+      border: none;
+      background: none;
+      color: #8c8c8c;
+      cursor: pointer;
+      font-size: 14px;
+      line-height: 1;
+      padding: 0;
+    }
+    .pool-search {
+      width: 100%;
+      height: 36px;
+      margin-bottom: 12px;
+      border: 1px solid #1677ff;
+      border-radius: 6px;
+      padding: 0 12px;
+      font-size: 13px;
+      outline: none;
+    }
+    .pool-list { border: 1px solid #f0f0f0; border-radius: 8px; overflow: hidden; }
+    .pool-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px 14px;
+      border-bottom: 1px solid #f5f5f5;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .pool-item:hover { background: #f5f9ff; }
+    .pool-item.active { background: #e6f4ff; }
+    .pool-item input { margin-top: 3px; }
+    .pool-item .meta { flex: 1; min-width: 0; }
+    .pool-item .meta .cn { color: #262626; font-weight: 500; }
+    .pool-item .meta .en { color: #8c8c8c; font-size: 12px; margin-top: 2px; }
+    .pool-empty { text-align: center; color: #bfbfbf; padding: 40px 16px; font-size: 13px; }
+    .pool-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 13px;
+      color: #595959;
+    }
+    .pool-toolbar label { display: flex; align-items: center; gap: 6px; cursor: pointer; user-select: none; }
+
+    /* 树下拉 / 级联（对齐原核查表 Ant 风格） */
+    .picker-wrap { position: relative; width: 100%; }
+    .picker-trigger {
+      display: flex;
+      align-items: center;
+      height: 36px;
+      border: 1px solid #d9d9d9;
+      border-radius: 2px;
+      padding: 0 11px;
+      font-size: 14px;
+      color: #bfbfbf;
+      cursor: pointer;
+      background: #fff;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .picker-trigger:hover { border-color: #4096ff; }
+    .picker-trigger.open {
+      border-color: #1677ff;
+      box-shadow: 0 0 0 2px rgba(5, 145, 255, .1);
+    }
+    .picker-trigger.has-val { color: rgba(0,0,0,.88); }
+    .picker-trigger .caret {
+      margin-left: auto;
+      color: rgba(0,0,0,.25);
+      font-size: 12px;
+      transition: transform .2s;
+    }
+    .picker-trigger.open .caret { transform: rotate(180deg); }
+
+    /* 来源单位：树形下拉 */
+    .tree-dropdown {
+      display: none;
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: calc(100% + 4px);
+      z-index: 60;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 6px 16px 0 rgba(0,0,0,.08), 0 3px 6px -4px rgba(0,0,0,.12), 0 9px 28px 8px rgba(0,0,0,.05);
+      padding: 4px 0;
+      max-height: 280px;
+      overflow: auto;
+    }
+    .tree-dropdown.show { display: block; }
+    .tree-dropdown::before {
+      content: "";
+      position: absolute;
+      top: -6px;
+      left: 16px;
+      border: 6px solid transparent;
+      border-top: none;
+      border-bottom-color: #fff;
+      filter: drop-shadow(0 -1px 1px rgba(0,0,0,.06));
+    }
+    .tr-item {
+      display: flex;
+      align-items: center;
+      min-height: 32px;
+      padding: 5px 12px;
+      font-size: 14px;
+      color: rgba(0,0,0,.88);
+      cursor: pointer;
+      line-height: 22px;
+      user-select: none;
+    }
+    .tr-item:hover { background: rgba(0,0,0,.04); }
+    .tr-item.selected { color: #1677ff; font-weight: 500; }
+    .tr-switch {
+      width: 24px;
+      height: 24px;
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(0,0,0,.45);
+      font-size: 10px;
+      margin-right: 4px;
+      border-radius: 4px;
+    }
+    .tr-switch:hover { background: rgba(0,0,0,.06); }
+    .tr-switch.empty { visibility: hidden; }
+    .tr-indent { display: inline-block; width: 24px; flex-shrink: 0; }
+    .tr-children { display: none; }
+    .tr-children.open { display: block; }
+
+    /* 适用范围：多列级联 */
+    .cascader-dropdown {
+      display: none;
+      position: absolute;
+      left: 0;
+      top: calc(100% + 4px);
+      z-index: 60;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 6px 16px 0 rgba(0,0,0,.08), 0 3px 6px -4px rgba(0,0,0,.12), 0 9px 28px 8px rgba(0,0,0,.05);
+      flex-direction: row;
+      height: 220px;
+      overflow: hidden;
+    }
+    .cascader-dropdown.show { display: flex; }
+    .cascader-dropdown::before {
+      content: "";
+      position: absolute;
+      top: -6px;
+      left: 16px;
+      border: 6px solid transparent;
+      border-top: none;
+      border-bottom-color: #fff;
+      filter: drop-shadow(0 -1px 1px rgba(0,0,0,.06));
+      z-index: 1;
+    }
+    .casc-menus {
+      display: flex;
+      height: 100%;
+    }
+    .casc-menu {
+      min-width: 140px;
+      max-width: 180px;
+      height: 100%;
+      margin: 0;
+      padding: 4px 0;
+      list-style: none;
+      border-inline-end: 1px solid rgba(5,5,5,.06);
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+    .casc-menu:last-child { border-inline-end: none; }
+    .casc-menu-item {
+      display: flex;
+      align-items: center;
+      flex-wrap: nowrap;
+      padding: 5px 12px;
+      min-height: 32px;
+      font-size: 14px;
+      color: rgba(0,0,0,.88);
+      cursor: pointer;
+      white-space: nowrap;
+      gap: 8px;
+    }
+    .casc-menu-item:hover { background: rgba(0,0,0,.04); }
+    .casc-menu-item-active {
+      background: #e6f4ff;
+      font-weight: 600;
+      color: rgba(0,0,0,.88);
+    }
+    .casc-menu-item input[type="radio"] {
+      width: 16px;
+      height: 16px;
+      margin: 0;
+      accent-color: #1677ff;
+      flex-shrink: 0;
+      pointer-events: none;
+    }
+    .casc-menu-item .casc-label { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+    .casc-menu-item .casc-expand {
+      margin-left: 4px;
+      color: rgba(0,0,0,.45);
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+    .check-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px 24px;
+      align-items: center;
+      min-height: 32px;
+      font-size: 14px;
+    }
+    .check-group label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      user-select: none;
+      color: rgba(0,0,0,.88);
+    }
+    .check-group input { width: 16px; height: 16px; accent-color: #1677ff; }
+    .biz-panel {
+      max-height: 320px;
+      min-width: 100%;
+      padding: 8px 0;
+    }
+    .biz-panel .biz-group {
+      padding: 4px 0;
+      border-bottom: 1px solid #f5f5f5;
+    }
+    .biz-panel .biz-group:last-child { border-bottom: none; }
+    .biz-panel .biz-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 6px 12px;
+      font-size: 13px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .biz-panel .biz-row:hover { background: #f5f5f5; }
+    .biz-panel .biz-row input { margin-top: 3px; flex-shrink: 0; accent-color: #1677ff; }
+    .biz-panel .biz-row.l2 { padding-left: 28px; }
+    .biz-panel .biz-row.l3 { padding-left: 48px; }
+    .biz-panel .biz-row .nm { color: rgba(0,0,0,.88); line-height: 20px; }
+    .biz-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .biz-tags:empty { display: none; }
+    .biz-tags .tag-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #e6f4ff;
+      color: #1677ff;
+      border: 1px solid #91caff;
+      border-radius: 4px;
+      padding: 2px 8px;
+      font-size: 12px;
+    }
+    .biz-tags .tag-chip button {
+      border: none;
+      background: none;
+      color: #8c8c8c;
+      cursor: pointer;
+      font-size: 14px;
+      line-height: 1;
+      padding: 0;
+    }
+    .map-box.readonly select,
+    .map-box.readonly .map-val {
+      background: #f5f5f5;
+      color: #595959;
+      border: 1px solid #f0f0f0;
+      border-radius: 4px;
+      padding: 6px 10px;
+      font-size: 13px;
+      display: inline-block;
+      min-width: 160px;
+    }
+    .exec-range-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .exec-range-row select {
+      min-width: 120px;
+      flex: 1;
+      height: 32px;
+    }
+    .sub-tabs.level2 {
+      margin-top: 0;
+      margin-bottom: 10px;
+    }
+
+    /* 关联对象：单一下拉树 */
+    .picker-panel {
+      display: none;
+      position: absolute;
+      left: 0; right: 0;
+      top: calc(100% + 4px);
+      z-index: 50;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 6px 16px 0 rgba(0,0,0,.08), 0 3px 6px -4px rgba(0,0,0,.12);
+      max-height: 280px;
+      overflow: auto;
+      padding: 4px 0;
+    }
+    .picker-panel.show { display: block; }
+    .tree-node {
+      padding: 5px 12px;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: rgba(0,0,0,.88);
+      min-height: 32px;
+    }
+    .tree-node:hover { background: rgba(0,0,0,.04); }
+    .tree-node .tw { width: 16px; color: rgba(0,0,0,.45); font-size: 10px; text-align: center; }
+    .tree-children { padding-left: 20px; display: none; }
+    .tree-children.open { display: block; }
+    .tree-node.leaf.selected { color: #1677ff; background: #e6f4ff; }
+    .kv { display: flex; padding: 10px 0; border-bottom: 1px solid #f5f5f5; font-size: 13px; }
+    .kv .k { width: 100px; color: #8c8c8c; flex-shrink: 0; }
+    .kv .v { flex: 1; color: #262626; word-break: break-all; }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      top: 80px;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,.75);
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 6px;
+      font-size: 14px;
+      z-index: 300;
+      display: none;
+    }
+    .toast.show { display: block; }
+
+    .empty {
+      text-align: center;
+      color: #bfbfbf;
+      padding: 48px;
+      font-size: 14px;
+    }
+    .page-hd {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .page-hd h2 { font-size: 16px; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-logo">金</div>
+      金华市基层智治综合应用 -智治系统
+    </div>
+    <div class="top-nav" id="top-nav">
+      <span data-mod="home">首页</span>
+      <span data-mod="emg">应急管理指挥</span>
+      <span data-mod="event">事件管理</span>
+      <span data-mod="warn">预警管理</span>
+      <span data-mod="task" class="active">任务管理</span>
+      <span data-mod="mt">矛调调处</span>
+      <span data-mod="data">数据管理</span>
+      <span data-mod="link">贯通应用</span>
+    </div>
+    <div class="top-user">XHD（原型演示）</div>
+  </header>
+
+  <div class="layout">
+    <!-- 任务管理侧栏（对齐现网菜单层级） -->
+    <aside class="sidebar" id="sidebar-task">
+      <div class="menu-item menu-placeholder" data-view="noop">任务创建</div>
+      <div class="menu-item menu-placeholder" data-view="noop">任务总览</div>
+      <div class="menu-item menu-placeholder" data-view="noop">任务事项管理</div>
+
+      <!-- 与现网一致：任务管理 → 我发起的 / 辖区任务 / 我的任务(待办·历史) / 周期任务 -->
+      <div class="menu-parent open" data-toggle="group-task-mgmt">
+        <span>任务管理</span><span class="arrow">▾</span>
+      </div>
+      <div class="menu-children open" id="group-task-mgmt">
+        <div class="menu-item menu-placeholder menu-l2" data-view="noop">我发起的</div>
+
+        <div class="menu-parent menu-l2 open" data-toggle="group-area-task" style="padding-left:36px;font-weight:400;color:#595959;">
+          <span>辖区任务</span><span class="arrow">▾</span>
+        </div>
+        <div class="menu-children open" id="group-area-task">
+          <div class="menu-item menu-placeholder menu-l3" data-view="noop">走访巡查</div>
+          <div class="menu-item menu-l3" data-view="area-list" data-areatype="collect">数据核采</div>
+          <div class="menu-item menu-placeholder menu-l3" data-view="noop">指令下达</div>
+          <div class="menu-item menu-placeholder menu-l3" data-view="noop">专项拉练</div>
+          <div class="menu-item menu-placeholder menu-l3" data-view="noop">预警任务</div>
+        </div>
+
+        <div class="menu-parent menu-l2 open" data-toggle="group-my-task" style="padding-left:36px;font-weight:400;color:#595959;">
+          <span>我的任务</span><span class="arrow">▾</span>
+        </div>
+        <div class="menu-children open" id="group-my-task">
+          <div class="menu-item menu-l3" data-view="my-todo" data-mysub="todo">待办任务</div>
+          <div class="menu-item menu-l3" data-view="my-todo" data-mysub="history">历史任务</div>
+        </div>
+
+        <div class="menu-item menu-placeholder menu-l2" data-view="noop">周期任务</div>
+      </div>
+
+      <!-- 省基层任务：任务管理与事项管理之间（本期新增） -->
+      <div class="menu-parent open" data-toggle="group-prov">
+        <span>省基层任务</span><span class="arrow">▾</span>
+      </div>
+      <div class="menu-children open" id="group-prov">
+        <div class="menu-item menu-l2 active" data-view="prov-list">
+          省基层任务列表 <span class="menu-badge" id="badge-pending">1</span>
+        </div>
+      </div>
+
+      <div class="menu-parent menu-placeholder open" data-toggle="group-matter">
+        <span>事项管理</span><span class="arrow">▾</span>
+      </div>
+      <div class="menu-children open" id="group-matter">
+        <div class="menu-item menu-placeholder menu-l2" data-view="noop">事项清单</div>
+        <div class="menu-item menu-placeholder menu-l2" data-view="noop">核采表</div>
+      </div>
+
+      <div class="menu-item menu-placeholder" data-view="noop">任务配置</div>
+      <div class="menu-item menu-placeholder" data-view="noop">外部协同任务</div>
+    </aside>
+
+    <!-- 数据管理侧栏（仿现网；非本期类型灰底占位） -->
+    <aside class="sidebar" id="sidebar-data" style="display:none;">
+      <div class="menu-item menu-placeholder" data-view="data-placeholder" data-dtype="house">房屋信息</div>
+      <div class="menu-item menu-placeholder" data-view="data-placeholder" data-dtype="pop">实有人口</div>
+      <div class="menu-item menu-placeholder" data-view="data-placeholder" data-dtype="jz">省社区矫正数据</div>
+      <div class="menu-group-title">组织机构</div>
+      <div class="menu-item menu-l2 menu-placeholder" data-view="data-placeholder" data-dtype="corp">法人企业</div>
+      <div class="menu-item menu-l2 menu-placeholder" data-view="data-placeholder" data-dtype="biz">个体工商户</div>
+      <div class="menu-item menu-l2 menu-placeholder" data-view="data-placeholder" data-dtype="gov">机关单位</div>
+      <div class="menu-divider"></div>
+      <div class="menu-group-title level1">应急管理指挥</div>
+      <div class="menu-item menu-l2 active" data-view="data-unit" data-dtype="yjxdy">应急小单元</div>
+      <div class="menu-divider"></div>
+      <div class="menu-item menu-placeholder" data-view="data-placeholder" data-dtype="place">重点场所</div>
+      <div class="menu-item menu-placeholder" data-view="data-placeholder" data-dtype="build">建筑物信息</div>
+      <div class="menu-item menu-placeholder" data-view="data-placeholder" data-dtype="addr">统一地址信息</div>
+    </aside>
+
+    <main class="main">
+      <!-- ========== 省基层任务列表 ========== -->
+      <section class="view active" id="view-prov-list">
+        <div class="dev-tip"><span class="dev-label">开发说明</span>本期仅做数据核采。当前=待下发+进行中，历史=已结束。下发不选核采表；映射预绑定只读。下发后进入辖区/我的任务「省级贯通任务」。</div>
+        <div class="panel" style="padding-top:0;">
+          <div class="tabs-line" style="margin:0 -16px 12px; border-radius:0;">
+            <button type="button" class="tab active">数据核采</button>
+          </div>
+          <div class="sub-tabs" id="prov-sub-tabs">
+            <button type="button" class="tab active" data-sub="current">当前任务</button>
+            <button type="button" class="tab" data-sub="history">历史任务</button>
+          </div>
+          <div class="toolbar">
+            <select id="prov-status-filter">
+              <option value="">全部状态</option>
+              <option value="待下发">待下发</option>
+              <option value="进行中">进行中</option>
+              <option value="已结束">已结束</option>
+            </select>
+            <input type="text" id="prov-kw" placeholder="任务编号 / 任务标题" style="width:200px" />
+            <button type="button" class="btn btn-primary" onclick="renderProvList()">搜索</button>
+            <button type="button" class="btn" onclick="document.getElementById('prov-kw').value='';document.getElementById('prov-status-filter').value='';renderProvList()">重置</button>
+          </div>
+          <table class="data">
+            <thead>
+              <tr>
+                <th>序号</th>
+                <th>任务编号</th>
+                <th>任务标题</th>
+                <th>任务类型</th>
+                <th>任务大类型</th>
+                <th>开始时间</th>
+                <th>结束时间</th>
+                <th>排查频率</th>
+                <th>对象总数</th>
+                <th>资源类型</th>
+                <th>采集表</th>
+                <th>手动下发时间</th>
+                <th>状态</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="prov-tbody"></tbody>
+          </table>
+          <div class="pager"><span id="prov-count">共 0 条</span></div>
+        </div>
+      </section>
+
+      <!-- ========== 任务下发（仿创建数据核查） ========== -->
+      <section class="view" id="view-dispatch">
+        <div class="page-hd">
+          <h2>任务下发 · 数据核采</h2>
+          <button type="button" class="btn" onclick="showView('prov-list')">返回列表</button>
+        </div>
+        <div class="form-page">
+          <div class="form-left">
+            <div class="form-title">下发数据核采任务</div>
+
+            <div class="form-row">
+              <div class="form-label"><span class="req">*</span>省任务编号</div>
+              <div class="form-control"><input type="text" id="d_taskCode" readonly style="background:#f5f5f5;width:100%" /></div>
+            </div>
+            <div class="form-row">
+              <div class="form-label"><span class="req">*</span>任务名称</div>
+              <div class="form-control"><input type="text" id="d_title" style="width:100%" /></div>
+            </div>
+            <div class="form-row">
+              <div class="form-label"><span class="req">*</span>任务描述</div>
+              <div class="form-control"><textarea id="d_desc" maxlength="200"></textarea></div>
+            </div>
+            <div class="form-row">
+              <div class="form-label"><span class="req">*</span>来源单位</div>
+              <div class="form-control">
+                <input type="text" id="d_sourceOrg" value="浙江省应急管理局" style="width:100%" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-label"><span class="req">*</span>来源层级</div>
+              <div class="form-control">
+                <input type="text" id="d_sourceLevel" value="省级贯通" readonly style="background:#f5f5f5;width:100%" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-label"><span class="req">*</span>业务分类</div>
+              <div class="form-control">
+                <div class="picker-wrap" id="d-biz-picker">
+                  <div class="picker-trigger" id="d_biz_trigger" onclick="toggleBizPanel(event)">
+                    <span id="d_biz_text">请选择</span>
+                    <span class="caret">▾</span>
+                  </div>
+                  <input type="hidden" id="d_biz" value="" />
+                  <div class="tree-dropdown biz-panel" id="d-biz-panel" onclick="event.stopPropagation()"></div>
+                </div>
+                <div class="biz-tags" id="d_biz_tags"></div>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-label"><span class="req">*</span>任务大类型</div>
+              <div class="form-control">
+                <select id="d_taskCategory" style="width:100%">
+                  <option value="1">日常履职</option>
+                  <option value="2">专项任务</option>
+                  <option value="3">紧急任务</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-label"><span class="req">*</span>周期类型</div>
+              <div class="form-control">
+                <input type="text" id="d_cycle" readonly style="background:#f5f5f5;width:100%" />
+                <input type="hidden" id="d_cycle_val" value="2" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-label"><span class="req">*</span>核采对象</div>
+              <div class="form-control">
+                <input type="text" id="d_resource" readonly style="background:#f5f5f5;width:100%" value="应急管理指挥-应急小单元" />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-label"><span class="req">*</span>表单映射</div>
+              <div class="form-control full">
+                <div class="map-box readonly" id="map-box">
+                  <table class="map-table">
+                    <thead>
+                      <tr><th style="width:40%">省表单字段</th><th>地市数据字段</th></tr>
+                    </thead>
+                    <tbody id="map-tbody"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-label"><span class="req">*</span>执行范围</div>
+              <div class="df-ctrl" style="flex:1;max-width:480px;">
+                <div class="picker-wrap" id="d-range-picker">
+                  <div class="picker-trigger" id="d_range_trigger" onclick="toggleDispatchRangePanel(event)">
+                    <span id="d_range_text">请选择</span>
+                    <span class="caret">▾</span>
+                  </div>
+                  <input type="hidden" id="d_range" value="" />
+                  <div class="cascader-dropdown" id="d-range-panel" onclick="event.stopPropagation()"></div>
+                </div>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-label"><span class="req">*</span>执行成员</div>
+              <div class="form-control">
+                <div class="check-group" id="d_exec_members">
+                  <label><input type="checkbox" name="d_member" value="村社" /> 村社</label>
+                  <label><input type="checkbox" name="d_member" value="网格" /> 网格</label>
+                  <label><input type="checkbox" name="d_member" value="应消站" /> 应消站</label>
+                </div>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-label"><span class="req">*</span>开始时间</div>
+              <div class="form-control"><input type="date" id="d_begin" /></div>
+            </div>
+            <div class="form-row">
+              <div class="form-label"><span class="req">*</span>结束时间</div>
+              <div class="form-control"><input type="date" id="d_end" /></div>
+            </div>
+            <div class="form-row">
+              <div class="form-label">下发说明</div>
+              <div class="form-control"><textarea id="d_remark" placeholder="选填"></textarea></div>
+            </div>
+
+            <div class="form-actions">
+              <button type="button" class="btn btn-primary btn-lg" onclick="submitDispatch()">提交下发</button>
+              <button type="button" class="btn btn-lg" onclick="showView('prov-list')">取消</button>
+            </div>
+          </div>
+          <div class="form-right">
+            <div class="illus">📦</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== 任务详情（查看） ========== -->
+      <section class="view" id="view-prov-detail">
+        <div class="page-hd">
+          <h2>任务详情</h2>
+          <button type="button" class="btn" onclick="showView('prov-list')">返回</button>
+        </div>
+        <div class="panel" id="prov-detail-body"></div>
+      </section>
+
+      <!-- ========== 进度 ========== -->
+      <section class="view" id="view-progress">
+        <div class="page-hd">
+          <h2>任务进度 · <span id="prog-title">—</span></h2>
+          <button type="button" class="btn" onclick="showView('prov-list')">返回</button>
+        </div>
+        <div class="dev-tip"><span class="dev-label">开发说明</span>进度不按百分比；展示核采数据总数（当前有效）、初始数据数、新增数据、编辑数据、删除数据数量。该处记录的是数据条数，不是操作记录数。</div>
+        <div class="stat-cards" style="grid-template-columns:repeat(5,1fr);">
+          <div class="stat-card"><div class="n" id="st-total">0</div><div class="l">核采数据总数</div></div>
+          <div class="stat-card"><div class="n" id="st-init">0</div><div class="l">初始数据数</div></div>
+          <div class="stat-card"><div class="n" id="st-add">0</div><div class="l">新增数据</div></div>
+          <div class="stat-card"><div class="n" id="st-edit">0</div><div class="l">编辑数据</div></div>
+          <div class="stat-card"><div class="n" id="st-del">0</div><div class="l">删除数据</div></div>
+        </div>
+        <div class="panel">
+          <div style="font-weight:600;margin-bottom:12px;font-size:14px;">组织进度（示意）</div>
+          <table class="data">
+            <thead>
+              <tr>
+                <th>组织</th>
+                <th>核采数据总数</th>
+                <th>初始数据数</th>
+                <th>新增数据</th>
+                <th>编辑数据</th>
+                <th>删除数据</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>永康市</td><td>3</td><td>2</td><td>1</td><td>2</td><td>0</td>
+              </tr>
+              <tr>
+                <td>　东城街道</td><td>2</td><td>1</td><td>1</td><td>1</td><td>0</td>
+              </tr>
+              <tr>
+                <td>　西城街道</td><td>1</td><td>1</td><td>0</td><td>1</td><td>0</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ========== 数据管理 · 应急小单元（只读） ========== -->
+      <section class="view" id="view-data-unit">
+        <div class="dev-tip"><span class="dev-label">开发说明</span>数据管理 · 应急管理指挥 / 应急小单元。本期无新增/导入；支持查看详情。字段定义供「核采表」关联使用。</div>
+        <div class="panel">
+          <div class="toolbar">
+            <select style="width:140px"><option>所属组织：请选择</option><option>永康市</option><option>东城街道</option></select>
+            <input type="text" placeholder="名称" style="width:140px" />
+            <input type="text" placeholder="单元长" style="width:120px" />
+            <button type="button" class="btn btn-primary" onclick="toast('搜索（示意）')">搜索</button>
+            <button type="button" class="btn" onclick="toast('重置（示意）')">重置</button>
+          </div>
+          <table class="data">
+            <thead>
+              <tr>
+                <th>名称</th>
+                <th>所属村社</th>
+                <th>单元长</th>
+                <th>单元长联系方式</th>
+                <th>成员数量</th>
+                <th>更新时间</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="data-unit-tbody"></tbody>
+          </table>
+          <div class="pager"><span>共 <span id="data-unit-count">0</span> 条</span>
+            <select style="width:80px"><option>10条/页</option></select>
+            <button type="button" class="btn" disabled>&lt;</button>
+            <button type="button" class="btn btn-primary" style="min-width:32px;padding:0 8px;">1</button>
+            <button type="button" class="btn" disabled>&gt;</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="view-data-placeholder">
+        <div class="panel empty" id="data-placeholder-text" style="background:#fafafa;color:#8c8c8c;">该菜单本期原型未展开，仅作导航占位。</div>
+      </section>
+
+      <!-- ========== 核采表列表 ========== -->
+      <section class="view" id="view-table-list">
+        <div class="dev-tip"><span class="dev-label">开发说明</span>仿原「新增核查」右侧抽屉。去掉法律法规依据、执行成员要求；关联核采对象为数据管理菜单多级选择；核采项从对象字段池添加。与省字段匹配仅在任务下发页。</div>
+        <div class="panel">
+          <div class="toolbar">
+            <button type="button" class="btn" style="background:#52c41a;border-color:#52c41a;color:#fff;" onclick="openTableForm()">+ 新增</button>
+            <div class="grow"></div>
+            <input type="text" id="tbl-kw" placeholder="核采表名称" style="width:180px" />
+            <button type="button" class="btn btn-primary" onclick="renderTableList()">搜索</button>
+          </div>
+          <table class="data">
+            <thead>
+              <tr>
+                <th>序号</th>
+                <th>核采表名称</th>
+                <th>编码</th>
+                <th>牵头部门</th>
+                <th>来源单位</th>
+                <th>关联数据类型</th>
+                <th>核采项数</th>
+                <th>更新时间</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="tbl-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ========== 辖区任务（侧栏类型：走访/核采/指令…；内容：地市|省级 + 当前|历史） ========== -->
+      <section class="view" id="view-area-list">
+        <div class="dev-tip"><span class="dev-label">开发说明</span>类型由侧栏选择。内容区：地市任务|省级贯通任务 → 当前|历史。当前不含已结束。本期完整做「数据核采」。</div>
+        <div class="panel" style="padding-top:0;">
+          <div class="sub-tabs level2" id="area-src-tabs" style="margin:12px 0 8px;">
+            <button type="button" class="tab" data-src="local">地市任务</button>
+            <button type="button" class="tab active" data-src="prov">省级贯通任务</button>
+          </div>
+          <div class="sub-tabs" id="area-sub-tabs" style="margin:0 0 12px;">
+            <button type="button" class="tab active" data-sub="current">当前任务</button>
+            <button type="button" class="tab" data-sub="history">历史任务</button>
+          </div>
+          <div class="toolbar" id="area-toolbar">
+            <select id="area-status-filter">
+              <option value="">全部状态</option>
+              <option value="未开始">未开始</option>
+              <option value="进行中">进行中</option>
+            </select>
+            <input type="text" id="area-kw" placeholder="输入任务编号" style="width:140px" />
+            <input type="text" id="area-kw-name" placeholder="输入任务名称" style="width:140px" />
+            <button type="button" class="btn btn-primary" onclick="renderAreaList()">搜索</button>
+          </div>
+          <div id="area-table-wrap">
+            <table class="data">
+              <thead>
+                <tr>
+                  <th>序号</th>
+                  <th>任务编号</th>
+                  <th>任务名称</th>
+                  <th>来源层级</th>
+                  <th>来源系统</th>
+                  <th>业务分类</th>
+                  <th>周期类型</th>
+                  <th>优先级</th>
+                  <th>状态</th>
+                  <th>下发时间</th>
+                  <th>开始时间</th>
+                  <th>结束时间</th>
+                  <th>对象数</th>
+                  <th>操作项</th>
+                </tr>
+              </thead>
+              <tbody id="area-tbody"></tbody>
+            </table>
+          </div>
+          <div id="area-empty-other" class="empty" style="display:none;">本期仅做数据核采，该类型暂无数据</div>
+        </div>
+      </section>
+
+      <!-- ========== 我的任务（侧栏：待办任务 / 历史任务） ========== -->
+      <section class="view" id="view-my-todo">
+        <div class="dev-tip"><span class="dev-label">开发说明</span>侧栏同现网：待办任务 / 历史任务。内容区：走访巡查|数据核采|指令下达 → 地市任务|省级贯通任务。待办=未结束，历史=已结束。</div>
+        <div class="panel" style="padding-top:0;">
+          <div class="tabs-line" id="my-type-tabs" style="margin:0 -16px 0;">
+            <button type="button" class="tab" data-type="visit">走访巡查(0)</button>
+            <button type="button" class="tab active" data-type="collect">数据核采(0)</button>
+            <button type="button" class="tab" data-type="order">指令下达(0)</button>
+          </div>
+          <div class="sub-tabs level2" id="my-src-tabs" style="margin:12px 0 8px;">
+            <button type="button" class="tab" data-src="local">地市任务</button>
+            <button type="button" class="tab active" data-src="prov">省级贯通任务</button>
+          </div>
+          <div class="toolbar" id="my-toolbar">
+            <select id="my-status-filter">
+              <option value="">全部状态</option>
+              <option value="未开始">未开始</option>
+              <option value="进行中">进行中</option>
+            </select>
+            <input type="text" id="my-kw" placeholder="输入任务名称" style="width:160px" />
+            <select id="my-src-sys">
+              <option value="">请选择来源系统</option>
+              <option value="省贯通">省贯通</option>
+              <option value="地市">地市</option>
+            </select>
+            <button type="button" class="btn btn-primary" onclick="renderMyList()">搜索</button>
+          </div>
+          <div id="my-table-wrap">
+            <table class="data">
+              <thead>
+                <tr>
+                  <th>序号</th>
+                  <th>任务编号</th>
+                  <th>任务名称</th>
+                  <th>来源层级</th>
+                  <th>来源系统</th>
+                  <th>业务分类</th>
+                  <th>周期类型</th>
+                  <th>优先级</th>
+                  <th>状态</th>
+                  <th>下发时间</th>
+                  <th>开始时间</th>
+                  <th>结束时间</th>
+                  <th>对象数</th>
+                  <th>操作项</th>
+                </tr>
+              </thead>
+              <tbody id="my-tbody"></tbody>
+            </table>
+          </div>
+          <div id="my-empty-other" class="empty" style="display:none;">本期仅做数据核采，该类型暂无数据</div>
+        </div>
+      </section>
+
+      <section class="view" id="view-noop">
+        <div class="panel empty" style="background:#fafafa;color:#8c8c8c;">该菜单本期原型未展开，仅作导航占位。</div>
+      </section>
+    </main>
+  </div>
+
+  <!-- 选取核采表抽屉（任务下发用） -->
+  <div class="drawer-mask" id="mask-table-picker" onclick="if(event.target===this)closeDrawer('mask-table-picker')">
+    <div class="drawer">
+      <div class="drawer-hd">
+        选取核采表
+        <button type="button" class="btn" onclick="closeDrawer('mask-table-picker')">关闭</button>
+      </div>
+      <div class="drawer-body">
+        <table class="data">
+          <thead><tr><th></th><th>核采表名称</th><th>编码</th><th>字段数</th></tr></thead>
+          <tbody id="picker-tbody"></tbody>
+        </table>
+      </div>
+      <div class="drawer-ft">
+        <button type="button" class="btn" onclick="closeDrawer('mask-table-picker')">取消</button>
+        <button type="button" class="btn btn-primary" onclick="confirmTablePick()">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 应急小单元 · 查看详情（只读） -->
+  <div class="drawer-mask" id="mask-unit-detail" onclick="if(event.target===this)closeDrawer('mask-unit-detail')">
+    <div class="drawer">
+      <div class="drawer-hd">
+        应急小单元详情
+        <button type="button" class="btn" onclick="closeDrawer('mask-unit-detail')">关闭</button>
+      </div>
+      <div class="drawer-body" id="unit-detail-body"></div>
+    </div>
+  </div>
+
+  <!-- 新增/编辑核采表（仿原新增核查右侧抽屉） -->
+  <div class="drawer-mask" id="mask-table-form" onclick="if(event.target===this)closeTableForm()">
+    <div class="drawer wide" onclick="event.stopPropagation()">
+      <div class="drawer-hd">
+        <span id="tbl-form-title">新增核采</span>
+        <div class="hd-actions">
+          <button type="button" class="btn btn-primary" onclick="saveTableForm()">✓ 提交</button>
+          <button type="button" class="btn btn-soft-danger" onclick="closeTableForm()">× 关闭</button>
+        </div>
+      </div>
+      <div class="drawer-body">
+        <div class="df-row">
+          <div class="df-label"><span class="req">*</span>核采表名称</div>
+          <div class="df-ctrl"><input type="text" id="tf_name" placeholder="请输入核采表名称" /></div>
+        </div>
+        <div class="df-row">
+          <div class="df-label"><span class="req">*</span>牵头部门</div>
+          <div class="df-ctrl"><input type="text" id="tf_dept" placeholder="输入牵头部门" /></div>
+        </div>
+        <div class="df-row">
+          <div class="df-label"><span class="req">*</span>来源单位</div>
+          <div class="df-ctrl">
+            <div class="picker-wrap" id="src-picker">
+              <div class="picker-trigger" id="tf_src_trigger" onclick="toggleSrcPanel(event)">
+                <span id="tf_src_text">请选择部门</span>
+                <span class="caret">▾</span>
+              </div>
+              <input type="hidden" id="tf_src" value="" />
+              <div class="tree-dropdown" id="src-panel" onclick="event.stopPropagation()"></div>
+            </div>
+          </div>
+        </div>
+        <div class="df-row">
+          <div class="df-label"><span class="req">*</span>适用范围</div>
+          <div class="df-ctrl">
+            <div class="picker-wrap" id="scope-picker">
+              <div class="picker-trigger" id="tf_scope_trigger" onclick="toggleScopePanel(event)">
+                <span id="tf_scope_text">请选择</span>
+                <span class="caret">▾</span>
+              </div>
+              <input type="hidden" id="tf_scope" value="" />
+              <div class="cascader-dropdown" id="scope-panel" onclick="event.stopPropagation()"></div>
+            </div>
+          </div>
+        </div>
+        <div class="df-row">
+          <div class="df-label"><span class="req">*</span>关联核采对象</div>
+          <div class="df-ctrl">
+            <div class="picker-wrap" id="obj-picker">
+              <div class="picker-trigger" id="tf_obj_trigger" onclick="toggleObjPanel(event)">
+                <span id="tf_obj_text">请选择</span>
+                <span class="caret">▾</span>
+              </div>
+              <input type="hidden" id="tf_obj_id" value="" />
+              <div class="picker-panel" id="obj-panel"></div>
+            </div>
+            <div style="font-size:12px;color:#8c8c8c;margin-top:6px;">
+              单一下拉，支持 2～3 级数据管理菜单。本期可完整配置：应急管理指挥 / 应急小单元。
+            </div>
+          </div>
+        </div>
+        <div class="df-row">
+          <div class="df-label"><span class="req">*</span>核采项</div>
+          <div class="df-ctrl">
+            <div class="df-link-row" id="tf_items_entry" onclick="openHcItemsPanel()">
+              <span id="tf_items_text">请设置</span>
+              <span class="arrow">››</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 核采项面板（仿原核查项） -->
+  <div class="drawer-mask" id="mask-hc-items" onclick="if(event.target===this)closeHcItemsPanel(false)">
+    <div class="drawer xl" onclick="event.stopPropagation()">
+      <div class="drawer-hd">
+        <span>核采项</span>
+        <div class="hd-actions">
+          <button type="button" class="btn btn-primary" onclick="confirmHcItems()">✓ 确定</button>
+          <button type="button" class="btn" onclick="clearHcItemsDraft()">清空</button>
+          <button type="button" class="btn btn-soft-danger" onclick="closeHcItemsPanel(false)">× 关闭</button>
+        </div>
+      </div>
+      <div class="drawer-body">
+        <div class="hc-section-tag">核采项 ▾</div>
+        <div class="hc-hint">核采项指定的字段开放编辑权限；字段来自关联核采对象（数据类型）的字段池。</div>
+        <button type="button" class="btn" style="background:#52c41a;border-color:#52c41a;color:#fff;margin-bottom:12px;" onclick="openFieldPool()">+ 新增字段</button>
+        <table class="data">
+          <thead>
+            <tr>
+              <th style="width:70px">序号</th>
+              <th>数据元名称</th>
+              <th>字段名</th>
+              <th>类型</th>
+              <th style="width:80px">操作</th>
+            </tr>
+          </thead>
+          <tbody id="hc-items-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 新增字段（仿原核查项「新增字段」右侧面板） -->
+  <div class="drawer-mask" id="mask-field-pool" onclick="if(event.target===this)closeFieldPool(false)">
+    <div class="drawer wide" onclick="event.stopPropagation()">
+      <div class="drawer-hd">
+        <span>新增字段</span>
+        <div class="hd-actions">
+          <button type="button" class="btn btn-primary" onclick="confirmFieldPool()">✓ 确定</button>
+          <button type="button" class="btn" onclick="clearFieldPoolSelect()">清空</button>
+          <button type="button" class="btn btn-soft-danger" onclick="closeFieldPool(false)">× 关闭</button>
+        </div>
+      </div>
+      <div class="drawer-body">
+        <div class="dev-tip" style="margin-bottom:12px;"><span class="dev-label">开发说明</span>字段池来自关联核采对象（数据管理）定义；勾选后点确定并入核采项。</div>
+        <div class="selected-box" id="pool-selected-box">
+          <div class="selected-label">已选择<span id="pool-selected-count">0</span>：</div>
+          <div class="selected-tags" id="pool-selected-tags"></div>
+        </div>
+        <input type="text" id="pool-search" class="pool-search" placeholder="请输入字段名或描述查询" oninput="renderFieldPoolList()" />
+        <div class="pool-toolbar">
+          <label><input type="checkbox" id="pool-check-all" onchange="togglePoolSelectAll(this.checked)" /> 全选</label>
+          <span id="pool-filter-hint" style="color:#8c8c8c;font-size:12px;"></span>
+        </div>
+        <div class="pool-list" id="field-pool-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    /** ---------- 模拟数据 ---------- */
+    // 省任务（对齐 getTaskByCode 主要字段 + 本地状态/手动下发时间）
+    let provTasks = [
+      {
+        taskCode: "RW330700YJXDY20260728001",
+        taskTitle: "基层应急消防小单元数据核采任务20260728",
+        taskType: 2,
+        taskCategory: 2,
+        taskDescribe: "对应急小单元基础信息进行核对与采集。",
+        taskBegin: "2026-07-28",
+        taskEnd: "2026-08-03",
+        checkFreq: null,
+        objectNum: 3,
+        resourceType: "jcyjzfxdy",
+        collectionTable: "jcyjzfxdy",
+        localStatus: "待下发",
+        manualDispatchTime: null,
+        stats: { init: 3, total: 3, add: 0, edit: 0, del: 0 }
+      },
+      {
+        taskCode: "RW330700YJXDY20260715002",
+        taskTitle: "应急小单元月度核采（示例进行中）",
+        taskType: 1,
+        taskCategory: 1,
+        taskDescribe: "周期核采示例",
+        taskBegin: "2026-07-15",
+        taskEnd: "2026-08-15",
+        checkFreq: 1,
+        objectNum: 12,
+        resourceType: "jcyjzfxdy",
+        collectionTable: "jcyjzfxdy",
+        localStatus: "进行中",
+        manualDispatchTime: "2026-07-16 09:30:00",
+        stats: { init: 8, total: 10, add: 2, edit: 5, del: 1 }
+      },
+      {
+        taskCode: "RW330700YJXDY20260601003",
+        taskTitle: "应急小单元半年核采（已结束示例）",
+        taskType: 2,
+        taskCategory: 1,
+        taskDescribe: "历史任务",
+        taskBegin: "2026-06-01",
+        taskEnd: "2026-06-30",
+        checkFreq: null,
+        objectNum: 8,
+        resourceType: "jcyjzfxdy",
+        collectionTable: "jcyjzfxdy",
+        localStatus: "已结束",
+        manualDispatchTime: "2026-06-02 10:00:00",
+        stats: { init: 5, total: 8, add: 3, edit: 4, del: 0 }
+      }
+    ];
+
+    // 省采集表字段（接口 getTableColumn 示例）
+    const PROV_COLUMNS = [
+      { columnName: "名称", columnNameEn: "unit_name", isRequired: "1" },
+      { columnName: "市", columnNameEn: "city_name", isRequired: "1" },
+      { columnName: "县（市、区）", columnNameEn: "district_name", isRequired: "1" },
+      { columnName: "乡镇(街道)", columnNameEn: "street_name", isRequired: "1" },
+      { columnName: "村(社区)", columnNameEn: "community_name", isRequired: "1" },
+      { columnName: "村（社区）行政区划编码", columnNameEn: "adcode", isRequired: "1" },
+      { columnName: "成员数量", columnNameEn: "member_count", isRequired: "1" },
+      { columnName: "单元长", columnNameEn: "unit_leader", isRequired: "1" },
+      { columnName: "单元长联系方式", columnNameEn: "unit_leader_contact", isRequired: "1" },
+      { columnName: "副单元长及联系方式", columnNameEn: "deputy_unit_leader_info", isRequired: "1" },
+      { columnName: "任务代码", columnNameEn: "task_code", isRequired: "0" }
+    ];
+
+    /**
+     * 数据管理菜单树 → 关联核采对象多级下拉
+     * 本期完整可配：应急管理指挥 / 应急小单元
+     */
+    const DATA_MENU_TREE = [
+      {
+        id: "yjzh",
+        name: "应急管理指挥",
+        children: [
+          {
+            id: "yjxdy",
+            name: "应急小单元",
+            enabled: true,
+            fields: [
+              { cn: "名称", en: "unit_name", type: "varchar" },
+              { cn: "市", en: "city_name", type: "varchar" },
+              { cn: "县（市、区）", en: "district_name", type: "varchar" },
+              { cn: "乡镇(街道)", en: "street_name", type: "varchar" },
+              { cn: "村(社区)", en: "community_name", type: "varchar" },
+              { cn: "村（社区）行政区划编码", en: "adcode", type: "varchar" },
+              { cn: "成员数量", en: "member_count", type: "int" },
+              { cn: "单元长", en: "unit_leader", type: "varchar" },
+              { cn: "单元长联系方式", en: "unit_leader_contact", type: "varchar" },
+              { cn: "副单元长及联系方式", en: "deputy_unit_leader_info", type: "varchar" }
+            ]
+          }
+        ]
+      },
+      {
+        id: "fw",
+        name: "房屋信息",
+        children: [
+          { id: "house", name: "出租房", enabled: false, fields: [
+            { cn: "房屋名称", en: "house_name", type: "varchar" },
+            { cn: "详细地址", en: "address", type: "varchar" }
+          ]}
+        ]
+      },
+      {
+        id: "rk",
+        name: "人口",
+        children: [
+          { id: "pop", name: "实有人口", enabled: false, fields: [
+            { cn: "姓名", en: "person_name", type: "varchar" },
+            { cn: "身份证号", en: "id_card", type: "varchar" }
+          ]}
+        ]
+      }
+    ];
+
+    function findDataType(id) {
+      for (const g of DATA_MENU_TREE) {
+        const c = (g.children || []).find(x => x.id === id);
+        if (c) return { ...c, groupId: g.id, groupName: g.name };
+      }
+      return null;
+    }
+
+    // 兼容旧 DATA_TYPES 引用
+    const DATA_TYPES = DATA_MENU_TREE.flatMap(g =>
+      (g.children || []).map(c => ({ id: c.id, name: c.name, group: g.name, fields: c.fields || [] }))
+    );
+
+    /** 数据管理 · 应急小单元业务数据（列表+查看，无增删改） */
+    const UNIT_DATA_ROWS = [
+      {
+        id: "u1",
+        unit_name: "城西网格应急消防小单元",
+        city_name: "金华市",
+        district_name: "永康市",
+        street_name: "东城街道",
+        community_name: "城西社区",
+        community_path: "永康市/东城街道/城西社区",
+        adcode: "330784001001",
+        unit_leader: "张建国",
+        unit_leader_contact: "13800001111",
+        deputy_unit_leader_info: "李明 / 13900002222；王芳 / 13700003333",
+        member_count: 12,
+        updateTime: "2026-07-28 15:20:00"
+      },
+      {
+        id: "u2",
+        unit_name: "东城商圈应急小单元",
+        city_name: "金华市",
+        district_name: "永康市",
+        street_name: "东城街道",
+        community_name: "城西社区",
+        community_path: "永康市/东城街道/城西社区",
+        adcode: "330784001001",
+        unit_leader: "赵强",
+        unit_leader_contact: "13600004444",
+        deputy_unit_leader_info: "陈晨 / 13500005555",
+        member_count: 8,
+        updateTime: "2026-07-27 11:05:00"
+      },
+      {
+        id: "u3",
+        unit_name: "花园社区应急消防单元",
+        city_name: "金华市",
+        district_name: "永康市",
+        street_name: "西城街道",
+        community_name: "花园社区",
+        community_path: "永康市/西城街道/花园社区",
+        adcode: "330784002002",
+        unit_leader: "周敏",
+        unit_leader_contact: "13400006666",
+        deputy_unit_leader_info: "孙磊 / 13300007777",
+        member_count: 15,
+        updateTime: "2026-07-26 09:40:00"
+      }
+    ];
+
+    // 地市核采表（关联 dataTypeId + 核查项 fields）
+    let LOCAL_TABLES = [
+      {
+        id: "t1",
+        name: "基层应急消防小单元",
+        code: "HC20260728001",
+        dept: "应急管理局",
+        src: "金华市",
+        scope: "全市",
+        dataTypeId: "yjxdy",
+        status: "已上线",
+        updateTime: "2026-07-28 14:00:00",
+        fields: [
+          { cn: "名称", en: "unit_name", type: "varchar" },
+          { cn: "市", en: "city_name", type: "varchar" },
+          { cn: "县（市、区）", en: "district_name", type: "varchar" },
+          { cn: "乡镇(街道)", en: "street_name", type: "varchar" },
+          { cn: "村(社区)", en: "community_name", type: "varchar" },
+          { cn: "村（社区）行政区划编码", en: "adcode", type: "varchar" },
+          { cn: "成员数量", en: "member_count", type: "int" },
+          { cn: "单元长", en: "unit_leader", type: "varchar" },
+          { cn: "单元长联系方式", en: "unit_leader_contact", type: "varchar" },
+          { cn: "副单元长及联系方式", en: "deputy_unit_leader_info", type: "varchar" }
+        ]
+      }
+    ];
+
+    let provSub = "current"; // current | history
+    let dispatchTaskCode = null;
+    let pickedTableId = null;
+    let pickerSelected = null;
+    let currentModule = "task"; // task | data
+    let editingTableId = null;
+    let editFields = [];      // 表单已确认的核采项
+    let draftFields = [];     // 核采项面板草稿
+
+    const TASK_TYPE_MAP = { 1: "周期任务", 2: "临时任务" };
+    const TASK_CAT_MAP = { 1: "日常履职", 2: "专项任务", 3: "紧急任务" };
+    const FREQ_MAP = { 1: "每月", 2: "每年", null: "—", undefined: "—" };
+
+    function toast(msg) {
+      const el = document.getElementById("toast");
+      el.textContent = msg;
+      el.classList.add("show");
+      clearTimeout(toast._t);
+      toast._t = setTimeout(() => el.classList.remove("show"), 1800);
+    }
+
+    function setModule(mod) {
+      currentModule = mod;
+      document.querySelectorAll("#top-nav span").forEach(s => {
+        s.classList.toggle("active", s.dataset.mod === mod || (mod === "task" && s.dataset.mod === "task"));
+      });
+      // 顶栏仅高亮任务/数据
+      document.querySelectorAll("#top-nav span").forEach(s => {
+        if (mod === "task") s.classList.toggle("active", s.dataset.mod === "task");
+        else if (mod === "data") s.classList.toggle("active", s.dataset.mod === "data");
+        else s.classList.remove("active");
+      });
+      document.getElementById("sidebar-task").style.display = mod === "task" ? "block" : "none";
+      document.getElementById("sidebar-data").style.display = mod === "data" ? "block" : "none";
+      if (mod === "data") {
+        lastMenuEl = document.querySelector('#sidebar-data .menu-item[data-view="data-unit"]');
+        showView("data-unit");
+      }
+      if (mod === "task") showView("prov-list");
+      if (mod !== "task" && mod !== "data") {
+        toast("该模块本期原型未展开");
+        setModule("task");
+      }
+    }
+
+    document.getElementById("top-nav").addEventListener("click", (e) => {
+      const sp = e.target.closest("span[data-mod]");
+      if (!sp) return;
+      const mod = sp.dataset.mod;
+      if (mod === "task" || mod === "data") setModule(mod);
+      else toast("该模块本期原型未展开");
+    });
+
+    function showView(name) {
+      document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+      const el = document.getElementById("view-" + name);
+      if (el) el.classList.add("active");
+
+      const side = currentModule === "data" ? "#sidebar-data" : "#sidebar-task";
+      document.querySelectorAll(side + " .menu-item").forEach(m => {
+        let related = false;
+
+        if (currentModule === "data") {
+          // 数据管理：占位只高亮当前点击项；应急小单元单独高亮
+          if (name === "data-placeholder") {
+            related = lastMenuEl === m;
+          } else if (name === "data-unit") {
+            related = m.dataset.view === "data-unit";
+          } else {
+            related = lastMenuEl === m;
+          }
+        } else if (name === "noop") {
+          // 占位菜单：只高亮当前点击的那一项，其它 noop 绝不一起变蓝
+          related = lastMenuEl === m;
+        } else if (name === "my-todo" || (name === "progress" && lastMenuEl && lastMenuEl.dataset.view === "my-todo")) {
+          related = m.dataset.view === "my-todo" && m.dataset.mysub === myListSub;
+        } else if (name === "area-list" || (name === "progress" && lastMenuEl && lastMenuEl.dataset.view === "area-list")) {
+          related = m.dataset.view === "area-list" && m.dataset.areatype === areaType;
+        } else if (name === "dispatch" || name === "prov-detail") {
+          related = m.dataset.view === "prov-list";
+        } else if (name === "progress") {
+          related = m.dataset.view === "prov-list";
+        } else {
+          related = m.dataset.view === name && !m.dataset.mysub && !m.dataset.areatype;
+        }
+
+        m.classList.toggle("active", related);
+      });
+
+      if (name === "prov-list") renderProvList();
+      if (name === "table-list") renderTableList();
+      if (name === "area-list") renderAreaList();
+      if (name === "my-todo") renderMyList();
+      if (name === "data-unit") renderDataUnitList();
+    }
+
+    let lastMenuEl = null; // 当前高亮的菜单节点（避免 noop 共用 view 导致多项变蓝）
+
+    document.getElementById("sidebar-task").addEventListener("click", (e) => {
+      // 折叠/展开分组
+      const parent = e.target.closest(".menu-parent[data-toggle]");
+      if (parent && !e.target.closest(".menu-item")) {
+        const id = parent.dataset.toggle;
+        const kids = document.getElementById(id);
+        if (kids) {
+          const open = kids.classList.toggle("open");
+          parent.classList.toggle("open", open);
+        }
+        return;
+      }
+      const item = e.target.closest(".menu-item[data-view]");
+      if (!item) return;
+      lastMenuEl = item;
+      if (item.dataset.view === "my-todo" && item.dataset.mysub) {
+        myListSub = item.dataset.mysub; // todo | history
+      }
+      if (item.dataset.view === "area-list" && item.dataset.areatype) {
+        areaType = item.dataset.areatype; // visit|collect|order|special|warn
+      }
+      showView(item.dataset.view);
+    });
+    document.getElementById("sidebar-data").addEventListener("click", (e) => {
+      const item = e.target.closest(".menu-item[data-view]");
+      if (!item) return;
+      lastMenuEl = item;
+      if (item.dataset.view === "data-placeholder") {
+        document.getElementById("data-placeholder-text").textContent =
+          "该菜单本期原型未展开，仅作导航占位。";
+      }
+      showView(item.dataset.view);
+    });
+
+    document.getElementById("prov-sub-tabs").addEventListener("click", (e) => {
+      const tab = e.target.closest(".tab");
+      if (!tab) return;
+      document.querySelectorAll("#prov-sub-tabs .tab").forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+      provSub = tab.dataset.sub;
+      renderProvList();
+    });
+
+    function statusTag(s) {
+      if (s === "待下发" || s === "未开始") return `<span class="tag tag-orange">${s}</span>`;
+      if (s === "进行中") return `<span class="tag tag-blue">${s}</span>`;
+      return `<span class="tag tag-gray">${s}</span>`;
+    }
+
+    function renderProvList() {
+      const kw = (document.getElementById("prov-kw").value || "").trim();
+      const sf = document.getElementById("prov-status-filter").value;
+      let list = provTasks.filter(t => {
+        if (provSub === "current") return t.localStatus === "待下发" || t.localStatus === "进行中";
+        return t.localStatus === "已结束";
+      });
+      if (sf) list = list.filter(t => t.localStatus === sf);
+      if (kw) list = list.filter(t => t.taskCode.includes(kw) || t.taskTitle.includes(kw));
+
+      const tb = document.getElementById("prov-tbody");
+      if (!list.length) {
+        tb.innerHTML = `<tr><td colspan="14" class="empty">暂无数据</td></tr>`;
+      } else {
+        tb.innerHTML = list.map((t, i) => {
+          let ops = `<button type="button" class="btn-link" onclick="openProvDetail('${t.taskCode}')">查看</button>`;
+          if (t.localStatus === "待下发") {
+            ops += `<button type="button" class="btn-link" onclick="openDispatch('${t.taskCode}')">下发</button>`;
+          } else {
+            ops += `<button type="button" class="btn-link" onclick="openProgress('${t.taskCode}')">进度</button>`;
+          }
+          return `<tr>
+            <td>${i + 1}</td>
+            <td>${t.taskCode}</td>
+            <td title="${t.taskTitle}">${t.taskTitle.length > 18 ? t.taskTitle.slice(0, 18) + "…" : t.taskTitle}</td>
+            <td>${TASK_TYPE_MAP[t.taskType] || t.taskType}</td>
+            <td>${TASK_CAT_MAP[t.taskCategory] || t.taskCategory}</td>
+            <td>${t.taskBegin || "—"}</td>
+            <td>${t.taskEnd || "—"}</td>
+            <td>${FREQ_MAP[t.checkFreq] ?? "—"}</td>
+            <td>${t.objectNum ?? "—"}</td>
+            <td>${t.resourceType || "—"}</td>
+            <td>${t.collectionTable || "—"}</td>
+            <td>${t.manualDispatchTime || "—"}</td>
+            <td>${statusTag(t.localStatus)}</td>
+            <td style="white-space:nowrap">${ops}</td>
+          </tr>`;
+        }).join("");
+      }
+      document.getElementById("prov-count").textContent = `共 ${list.length} 条`;
+      const pending = provTasks.filter(t => t.localStatus === "待下发").length;
+      document.getElementById("badge-pending").textContent = pending;
+      document.getElementById("badge-pending").style.display = pending ? "inline" : "none";
+    }
+
+    function openProvDetail(code) {
+      const t = provTasks.find(x => x.taskCode === code);
+      if (!t) return;
+      document.getElementById("prov-detail-body").innerHTML = `
+        <div class="kv"><div class="k">任务编号</div><div class="v">${t.taskCode}</div></div>
+        <div class="kv"><div class="k">任务标题</div><div class="v">${t.taskTitle}</div></div>
+        <div class="kv"><div class="k">任务描述</div><div class="v">${t.taskDescribe || "—"}</div></div>
+        <div class="kv"><div class="k">任务类型</div><div class="v">${TASK_TYPE_MAP[t.taskType]}</div></div>
+        <div class="kv"><div class="k">任务大类型</div><div class="v">${TASK_CAT_MAP[t.taskCategory]}</div></div>
+        <div class="kv"><div class="k">开始时间</div><div class="v">${t.taskBegin}</div></div>
+        <div class="kv"><div class="k">结束时间</div><div class="v">${t.taskEnd}</div></div>
+        <div class="kv"><div class="k">排查频率</div><div class="v">${FREQ_MAP[t.checkFreq] ?? "—"}</div></div>
+        <div class="kv"><div class="k">对象总数</div><div class="v">${t.objectNum}</div></div>
+        <div class="kv"><div class="k">资源类型</div><div class="v">${t.resourceType}</div></div>
+        <div class="kv"><div class="k">采集表</div><div class="v">${t.collectionTable}</div></div>
+        <div class="kv"><div class="k">手动下发时间</div><div class="v">${t.manualDispatchTime || "—"}</div></div>
+        <div class="kv"><div class="k">执行范围</div><div class="v">${t.execRange || "—"}</div></div>
+        <div class="kv"><div class="k">执行成员</div><div class="v">${(t.execMembers && t.execMembers.join("、")) || "—"}</div></div>
+        <div class="kv"><div class="k">状态</div><div class="v">${statusTag(t.localStatus)}</div></div>
+        <div style="margin-top:16px;">
+          ${t.localStatus === "待下发"
+            ? `<button class="btn btn-primary" onclick="openDispatch('${t.taskCode}')">去下发</button>`
+            : `<button class="btn btn-primary" onclick="openProgress('${t.taskCode}')">查看进度</button>`}
+        </div>
+      `;
+      showView("prov-detail");
+    }
+
+    // 预绑定的省字段 → 地市字段（下发页只读展示）
+    const PREBOUND_FIELD_MAP = {
+      unit_name: { cn: "名称", localCn: "名称", localEn: "unit_name" },
+      city_name: { cn: "市", localCn: "市", localEn: "city_name" },
+      district_name: { cn: "县（市、区）", localCn: "县（市、区）", localEn: "district_name" },
+      street_name: { cn: "乡镇(街道)", localCn: "乡镇(街道)", localEn: "street_name" },
+      community_name: { cn: "村(社区)", localCn: "村(社区)", localEn: "community_name" },
+      adcode: { cn: "村（社区）行政区划编码", localCn: "行政区划编码", localEn: "adcode" },
+      member_count: { cn: "成员数量", localCn: "成员数量", localEn: "member_count" },
+      unit_leader: { cn: "单元长", localCn: "单元长", localEn: "unit_leader" },
+      unit_leader_contact: { cn: "单元长联系方式", localCn: "单元长联系方式", localEn: "unit_leader_contact" },
+      deputy_unit_leader_info: { cn: "副单元长及联系方式", localCn: "副单元长及联系方式", localEn: "deputy_unit_leader_info" },
+      task_code: { cn: "任务代码", localCn: "任务代码", localEn: "task_code" }
+    };
+
+    let dRangePath = []; // 下发执行范围级联路径
+
+    /** 业务分类（多选，树形；默认为空） */
+    const BIZ_TREE = [
+      { id: "mdjf", name: "矛盾纠纷调处", children: [] },
+      {
+        id: "shza", name: "社会治安防控",
+        children: [
+          { id: "sqjz", name: "社区矫正", children: [] }
+        ]
+      },
+      {
+        id: "yjgl", name: "应急管理指挥",
+        children: [
+          { id: "aqsc", name: "安全生产", children: [] },
+          {
+            id: "fzjz", name: "防灾减灾",
+            children: [
+              { id: "fxkt", name: "防汛抗台", children: [] }
+            ]
+          },
+          { id: "jyzh", name: "救援指挥", children: [] },
+          { id: "qt", name: "其他", children: [] }
+        ]
+      },
+      { id: "shgz", name: "社会工作服务", children: [] }
+    ];
+
+    let dBizSelected = []; // [{id, path}]
+
+    function flattenBizLeaves(nodes, prefix, out) {
+      nodes.forEach(n => {
+        const path = prefix ? prefix + "-" + n.name : n.name;
+        if (!n.children || !n.children.length) {
+          out.push({ id: n.id, name: n.name, path });
+        } else {
+          // 可选：父节点也可选；按图结构叶子更具体，父级也可勾选
+          out.push({ id: n.id, name: n.name, path, isParent: true });
+          flattenBizLeaves(n.children, path, out);
+        }
+      });
+      return out;
+    }
+
+    function renderBizPanel() {
+      const panel = document.getElementById("d-biz-panel");
+      const sel = new Set(dBizSelected.map(x => x.id));
+      function rows(nodes, level, prefix) {
+        return nodes.map(n => {
+          const path = prefix ? prefix + "-" + n.name : n.name;
+          const checked = sel.has(n.id);
+          const lv = level === 1 ? "" : (level === 2 ? "l2" : "l3");
+          let html = `
+            <div class="biz-row ${lv}" onclick="toggleBizItem('${n.id}','${path.replace(/'/g,"\\'")}',event)">
+              <input type="checkbox" ${checked ? "checked" : ""} onclick="event.stopPropagation();toggleBizItem('${n.id}','${path.replace(/'/g,"\\'")}',event)" />
+              <span class="nm">${n.name}</span>
+            </div>`;
+          if (n.children && n.children.length) {
+            html += rows(n.children, level + 1, path);
+          }
+          return html;
+        }).join("");
+      }
+      panel.innerHTML = rows(BIZ_TREE, 1, "");
+    }
+
+    function toggleBizPanel(e) {
+      e.stopPropagation();
+      closeAllPickers("d-biz-panel");
+      const p = document.getElementById("d-biz-panel");
+      const tr = document.getElementById("d_biz_trigger");
+      const open = !p.classList.contains("show");
+      p.classList.toggle("show", open);
+      tr.classList.toggle("open", open);
+      if (open) renderBizPanel();
+    }
+
+    function toggleBizItem(id, path, e) {
+      if (e) e.stopPropagation();
+      const idx = dBizSelected.findIndex(x => x.id === id);
+      if (idx >= 0) dBizSelected.splice(idx, 1);
+      else dBizSelected.push({ id, path });
+      syncBizUI();
+      renderBizPanel();
+    }
+
+    function removeBizItem(id) {
+      dBizSelected = dBizSelected.filter(x => x.id !== id);
+      syncBizUI();
+      if (document.getElementById("d-biz-panel").classList.contains("show")) renderBizPanel();
+    }
+
+    function syncBizUI() {
+      const text = document.getElementById("d_biz_text");
+      const trigger = document.getElementById("d_biz_trigger");
+      const hidden = document.getElementById("d_biz");
+      if (!dBizSelected.length) {
+        text.textContent = "请选择";
+        trigger.classList.remove("has-val");
+        hidden.value = "";
+      } else {
+        text.textContent = `已选 ${dBizSelected.length} 项`;
+        trigger.classList.add("has-val");
+        hidden.value = dBizSelected.map(x => x.path).join(",");
+      }
+      document.getElementById("d_biz_tags").innerHTML = dBizSelected.map(x => `
+        <span class="tag-chip">${x.path}
+          <button type="button" onclick="removeBizItem('${x.id}')">×</button>
+        </span>
+      `).join("");
+    }
+
+    function renderReadonlyFieldMap() {
+      document.getElementById("map-tbody").innerHTML = PROV_COLUMNS.map(col => {
+        const m = PREBOUND_FIELD_MAP[col.columnNameEn];
+        const localText = m ? `${m.localCn}（${m.localEn}）` : "—";
+        return `<tr>
+          <td>${col.columnName}<div style="color:#bfbfbf;font-size:12px">${col.columnNameEn}</div></td>
+          <td><span class="map-val">${localText}</span></td>
+        </tr>`;
+      }).join("");
+    }
+
+    function toggleDispatchRangePanel(e) {
+      e.stopPropagation();
+      closeAllPickers("d-range-panel");
+      const p = document.getElementById("d-range-panel");
+      const tr = document.getElementById("d_range_trigger");
+      const open = !p.classList.contains("show");
+      if (open && !dRangePath.length) dRangePath = ["金华市"];
+      p.classList.toggle("show", open);
+      tr.classList.toggle("open", open);
+      if (open) renderDispatchRangePanel();
+    }
+
+    function renderDispatchRangePanel() {
+      const p = document.getElementById("d-range-panel");
+      const districts = REGION_TREE.children;
+      const menu1 = `
+        <ul class="casc-menu">
+          <li class="casc-menu-item casc-menu-item-active" onclick="dRangePick(0,'金华市',event)">
+            <input type="radio" ${dRangePath[0]==="金华市"?"checked":""} tabindex="-1" />
+            <span class="casc-label">金华市</span>
+            <span class="casc-expand">›</span>
+          </li>
+        </ul>`;
+      const menu2 = `
+        <ul class="casc-menu">
+          ${districts.map(d => `
+            <li class="casc-menu-item ${dRangePath[1]===d.name?"casc-menu-item-active":""}"
+                onclick="dRangePick(1,'${d.name}',event)">
+              <input type="radio" ${dRangePath[1]===d.name?"checked":""} tabindex="-1" />
+              <span class="casc-label">${d.name}</span>
+              <span class="casc-expand">›</span>
+            </li>
+          `).join("")}
+        </ul>`;
+      let menu3 = "";
+      if (dRangePath[1]) {
+        const dist = districts.find(d => d.name === dRangePath[1]);
+        const towns = (dist && dist.children) || [];
+        menu3 = `
+          <ul class="casc-menu">
+            ${towns.map(t => `
+              <li class="casc-menu-item ${dRangePath[2]===t.name?"casc-menu-item-active":""}"
+                  onclick="dRangePick(2,'${t.name}',event)">
+                <input type="radio" ${dRangePath[2]===t.name?"checked":""} tabindex="-1" />
+                <span class="casc-label">${t.name}</span>
+              </li>
+            `).join("")}
+          </ul>`;
+      }
+      p.innerHTML = `<div class="casc-menus">${menu1}${menu2}${menu3}</div>`;
+    }
+
+    function dRangePick(level, name, e) {
+      e.stopPropagation();
+      const already =
+        (level === 0 && dRangePath.length === 1 && dRangePath[0] === name) ||
+        (level === 1 && dRangePath[1] === name && dRangePath.length === 2) ||
+        (level === 2 && dRangePath[2] === name);
+      if (level === 0) dRangePath = ["金华市"];
+      else if (level === 1) dRangePath = ["金华市", name];
+      else dRangePath = [dRangePath[0], dRangePath[1], name];
+      const full = dRangePath.join(" / ");
+      document.getElementById("d_range").value = full;
+      document.getElementById("d_range_text").textContent = full;
+      document.getElementById("d_range_trigger").classList.add("has-val");
+      renderDispatchRangePanel();
+      if (level === 2 || already) {
+        document.getElementById("d-range-panel").classList.remove("show");
+        document.getElementById("d_range_trigger").classList.remove("open");
+      }
+    }
+
+    function openDispatch(code) {
+      const t = provTasks.find(x => x.taskCode === code);
+      if (!t) return;
+      dispatchTaskCode = code;
+      document.getElementById("d_taskCode").value = t.taskCode;
+      document.getElementById("d_title").value = t.taskTitle;
+      document.getElementById("d_desc").value = t.taskDescribe || "";
+      document.getElementById("d_sourceOrg").value = "浙江省应急管理局";
+      document.getElementById("d_sourceLevel").value = "省级贯通";
+      document.getElementById("d_cycle").value = TASK_TYPE_MAP[t.taskType] || "临时任务";
+      document.getElementById("d_cycle_val").value = String(t.taskType || 2);
+      document.getElementById("d_taskCategory").value = String(t.taskCategory || 1);
+      document.getElementById("d_resource").value = "应急管理指挥-应急小单元";
+      document.getElementById("d_begin").value = t.taskBegin || "";
+      document.getElementById("d_end").value = t.taskEnd || "";
+      document.getElementById("d_remark").value = "";
+      dBizSelected = [];
+      syncBizUI();
+      document.getElementById("d_biz_trigger").classList.remove("open");
+      document.getElementById("d-biz-panel").classList.remove("show");
+      dRangePath = [];
+      document.getElementById("d_range").value = "";
+      document.getElementById("d_range_text").textContent = "请选择";
+      document.getElementById("d_range_trigger").classList.remove("has-val", "open");
+      document.getElementById("d-range-panel").classList.remove("show");
+      document.querySelectorAll('input[name="d_member"]').forEach(c => { c.checked = false; });
+      renderReadonlyFieldMap();
+      showView("dispatch");
+    }
+
+    function closeDrawer(id) {
+      document.getElementById(id).classList.remove("show");
+    }
+
+    function submitDispatch() {
+      if (!dispatchTaskCode) return;
+      const title = document.getElementById("d_title").value.trim();
+      const desc = document.getElementById("d_desc").value.trim();
+      const sourceOrg = document.getElementById("d_sourceOrg").value.trim();
+      if (!title) { toast("请填写任务名称"); return; }
+      if (!desc) { toast("请填写任务描述"); return; }
+      if (!sourceOrg) { toast("请填写来源单位"); return; }
+      if (!dBizSelected.length) { toast("请选择业务分类"); return; }
+      if (!document.getElementById("d_begin").value || !document.getElementById("d_end").value) {
+        toast("请填写开始/结束时间");
+        return;
+      }
+      const range = document.getElementById("d_range").value.trim();
+      if (!range || dRangePath.length < 2) {
+        toast("请选择执行范围");
+        return;
+      }
+      const members = Array.from(document.querySelectorAll('input[name="d_member"]:checked')).map(c => c.value);
+      if (!members.length) {
+        toast("请至少选择一类执行成员");
+        return;
+      }
+
+      const t = provTasks.find(x => x.taskCode === dispatchTaskCode);
+      const now = new Date();
+      const pad = n => String(n).padStart(2, "0");
+      t.manualDispatchTime = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+      t.localStatus = "进行中";
+      t.taskTitle = title;
+      t.taskDescribe = desc;
+      t.taskBegin = document.getElementById("d_begin").value;
+      t.taskEnd = document.getElementById("d_end").value;
+      t.execRange = range;
+      t.execMembers = members;
+      t.sourceOrg = sourceOrg;
+      t.biz = dBizSelected.map(x => x.path);
+      t.taskCategory = Number(document.getElementById("d_taskCategory").value) || 1;
+
+      toast("下发成功");
+      setTimeout(() => showView("prov-list"), 400);
+    }
+
+    function openProgress(code) {
+      const t = provTasks.find(x => x.taskCode === code);
+      if (!t) return;
+      document.getElementById("prog-title").textContent = t.taskTitle;
+      document.getElementById("st-init").textContent = t.stats.init ?? t.objectNum ?? 0;
+      document.getElementById("st-total").textContent = t.stats.total;
+      document.getElementById("st-add").textContent = t.stats.add;
+      document.getElementById("st-edit").textContent = t.stats.edit;
+      document.getElementById("st-del").textContent = t.stats.del;
+      showView("progress");
+    }
+
+    function openProgressFromLocal() {
+      document.getElementById("prog-title").textContent = "本地/执行中数据核采任务";
+      document.getElementById("st-init").textContent = 2;
+      document.getElementById("st-total").textContent = 3;
+      document.getElementById("st-add").textContent = 1;
+      document.getElementById("st-edit").textContent = 2;
+      document.getElementById("st-del").textContent = 0;
+      showView("progress");
+    }
+
+    function dataTypeName(id) {
+      const d = findDataType(id);
+      return d ? (d.groupName + " / " + d.name) : "—";
+    }
+
+    /** ---------- 来源单位（组织树，对齐原图） ---------- */
+    const ORG_TREE = {
+      name: "金华市",
+      children: [
+        "党委机构", "人大机构", "政府机构", "政协机构",
+        "法院", "检察院", "人民团体和群众团体",
+        "民主党派、工商联、无党派人士", "经济实体"
+      ].map(n => ({ name: n }))
+    };
+
+    let srcExpanded = true;
+
+    function renderSrcPanel() {
+      const panel = document.getElementById("src-panel");
+      const cur = document.getElementById("tf_src").value;
+      const kids = ORG_TREE.children.map(c => {
+        const path = c.name;
+        const sel = cur === path || cur === ("金华市 / " + path) ? "selected" : "";
+        return `
+          <div class="tr-item ${sel}" style="padding-left:36px" onclick="pickSrc('${path}', event)">
+            <span class="tr-switch empty"></span>${c.name}
+          </div>`;
+      }).join("");
+      panel.innerHTML = `
+        <div class="tr-item ${cur==="金华市"?"selected":""}" onclick="toggleSrcExpand(event)">
+          <span class="tr-switch" id="src-root-sw">${srcExpanded ? "▾" : "▸"}</span>
+          <span onclick="pickSrc('金华市', event); event.stopPropagation();">金华市</span>
+        </div>
+        <div class="tr-children ${srcExpanded ? "open" : ""}" id="src-root-kids">${kids}</div>
+      `;
+    }
+
+    function toggleSrcExpand(e) {
+      e.stopPropagation();
+      srcExpanded = !srcExpanded;
+      renderSrcPanel();
+    }
+
+    function toggleSrcPanel(e) {
+      e.stopPropagation();
+      closeAllPickers("src-panel");
+      const p = document.getElementById("src-panel");
+      const tr = document.getElementById("tf_src_trigger");
+      const open = !p.classList.contains("show");
+      p.classList.toggle("show", open);
+      tr.classList.toggle("open", open);
+      if (open) renderSrcPanel();
+    }
+
+    function pickSrc(path, e) {
+      e.stopPropagation();
+      document.getElementById("tf_src").value = path;
+      document.getElementById("tf_src_text").textContent = path;
+      document.getElementById("tf_src_trigger").classList.add("has-val");
+      document.getElementById("tf_src_trigger").classList.remove("open");
+      document.getElementById("src-panel").classList.remove("show");
+    }
+
+    /** ---------- 适用范围（多列单选级联，对齐原图） ---------- */
+    const REGION_TREE = {
+      name: "金华市",
+      children: [
+        { name: "婺城区", children: ["罗店镇", "乾西乡", "竹马乡", "雅畈镇", "安地镇", "白龙桥镇", "琅琊镇", "蒋堂镇", "长山乡", "沙畈乡"].map(n => ({ name: n })) },
+        { name: "金东区", children: ["赤松镇", "曹宅镇", "傅村镇"].map(n => ({ name: n })) },
+        { name: "兰溪市", children: ["云山街道", "兰江街道", "上华街道"].map(n => ({ name: n })) },
+        { name: "东阳市", children: ["吴宁街道", "南市街道", "白云街道"].map(n => ({ name: n })) },
+        { name: "义乌市", children: ["稠城街道", "北苑街道", "稠江街道"].map(n => ({ name: n })) },
+        { name: "永康市", children: ["东城街道", "西城街道", "江南街道"].map(n => ({ name: n })) },
+        { name: "浦江县", children: ["浦阳街道", "黄宅镇", "白马镇"].map(n => ({ name: n })) },
+        { name: "武义县", children: ["壶山街道", "熟溪街道", "白洋街道"].map(n => ({ name: n })) },
+        { name: "磐安县", children: ["安文镇", "新渥镇", "尖山镇"].map(n => ({ name: n })) },
+        { name: "金华开发区管理委员会", children: ["安地镇", "白龙桥镇", "琅琊镇", "蒋堂镇", "长山乡", "沙畈乡"].map(n => ({ name: n })) }
+      ]
+    };
+
+    let scopePath = []; // [市, 区县?, 街镇?]
+
+    function toggleScopePanel(e) {
+      e.stopPropagation();
+      closeAllPickers("scope-panel");
+      const p = document.getElementById("scope-panel");
+      const tr = document.getElementById("tf_scope_trigger");
+      const open = !p.classList.contains("show");
+      if (open && !scopePath.length) scopePath = ["金华市"];
+      p.classList.toggle("show", open);
+      tr.classList.toggle("open", open);
+      if (open) renderScopePanel();
+    }
+
+    function renderScopePanel() {
+      const p = document.getElementById("scope-panel");
+      const districts = REGION_TREE.children;
+      const menu1 = `
+        <ul class="casc-menu">
+          <li class="casc-menu-item casc-menu-item-active" onclick="scopePickLevel(0,'金华市',event)">
+            <input type="radio" ${scopePath[0]==="金华市"?"checked":""} tabindex="-1" />
+            <span class="casc-label">金华市</span>
+            <span class="casc-expand">›</span>
+          </li>
+        </ul>`;
+      const menu2 = `
+        <ul class="casc-menu">
+          ${districts.map(d => `
+            <li class="casc-menu-item ${scopePath[1]===d.name?"casc-menu-item-active":""}"
+                onclick="scopePickLevel(1,'${d.name}',event)">
+              <input type="radio" ${scopePath[1]===d.name?"checked":""} tabindex="-1" />
+              <span class="casc-label">${d.name}</span>
+              <span class="casc-expand">›</span>
+            </li>
+          `).join("")}
+        </ul>`;
+      let menu3 = "";
+      if (scopePath[1]) {
+        const dist = districts.find(d => d.name === scopePath[1]);
+        const towns = (dist && dist.children) || [];
+        menu3 = `
+          <ul class="casc-menu">
+            ${towns.map(t => `
+              <li class="casc-menu-item ${scopePath[2]===t.name?"casc-menu-item-active":""}"
+                  onclick="scopePickLevel(2,'${t.name}',event)">
+                <input type="radio" ${scopePath[2]===t.name?"checked":""} tabindex="-1" />
+                <span class="casc-label">${t.name}</span>
+              </li>
+            `).join("")}
+          </ul>`;
+      }
+      p.innerHTML = `<div class="casc-menus">${menu1}${menu2}${menu3}</div>`;
+    }
+
+    function scopePickLevel(level, name, e) {
+      e.stopPropagation();
+      const already =
+        (level === 0 && scopePath.length === 1 && scopePath[0] === name) ||
+        (level === 1 && scopePath[1] === name && scopePath.length === 2) ||
+        (level === 2 && scopePath[2] === name);
+
+      if (level === 0) scopePath = ["金华市"];
+      else if (level === 1) scopePath = ["金华市", name];
+      else scopePath = [scopePath[0], scopePath[1], name];
+
+      const full = scopePath.join(" / ");
+      document.getElementById("tf_scope").value = full;
+      document.getElementById("tf_scope_text").textContent = full;
+      document.getElementById("tf_scope_trigger").classList.add("has-val");
+      renderScopePanel();
+
+      // 街镇：点选即确定；市/区：再点一次当前已选项则确定（与原级联习惯接近）
+      if (level === 2 || already) {
+        document.getElementById("scope-panel").classList.remove("show");
+        document.getElementById("tf_scope_trigger").classList.remove("open");
+      }
+    }
+
+    /** ---------- 关联核采对象（单一下拉，2～3 级树） ---------- */
+    function renderObjPanel() {
+      const panel = document.getElementById("obj-panel");
+      panel.innerHTML = DATA_MENU_TREE.map(g => {
+        const kids = (g.children || []).map(c => {
+          const disabled = c.enabled === false;
+          const label = disabled ? `${c.name}（本期未开放）` : c.name;
+          // 预留三级：若有 children 再嵌套
+          const grand = (c.children || []).map(gc => {
+            const gd = gc.enabled === false;
+            return `
+              <div class="tree-node leaf ${gd?"disabled":""}" style="${gd?"opacity:.5;cursor:not-allowed":""}"
+                   onclick="${gd?"event.stopPropagation()":`pickObj('${g.id}','${c.id}','${gc.id}',event)`}">
+                <span class="tw"></span>${gc.name}${gd?"（本期未开放）":""}
+              </div>`;
+          }).join("");
+          if (c.children && c.children.length) {
+            return `
+              <div class="tree-node" onclick="toggleObjBranch(event, this)">
+                <span class="tw">▸</span>${c.name}
+              </div>
+              <div class="tree-children">${grand}</div>`;
+          }
+          return `
+            <div class="tree-node leaf ${disabled?"disabled":""}" style="${disabled?"opacity:.5;cursor:not-allowed":""}"
+                 onclick="${disabled?"event.stopPropagation()":`pickObj('${g.id}','${c.id}','',event)`}">
+              <span class="tw"></span>${label}
+            </div>`;
+        }).join("");
+        return `
+          <div class="tree-node" onclick="toggleObjBranch(event, this)">
+            <span class="tw">▾</span>${g.name}
+          </div>
+          <div class="tree-children open">${kids}</div>`;
+      }).join("");
+    }
+
+    function toggleObjBranch(e, el) {
+      e.stopPropagation();
+      const kids = el.nextElementSibling;
+      if (!kids || !kids.classList.contains("tree-children")) return;
+      const open = kids.classList.toggle("open");
+      const tw = el.querySelector(".tw");
+      if (tw) tw.textContent = open ? "▾" : "▸";
+    }
+
+    function toggleObjPanel(e) {
+      e.stopPropagation();
+      closeAllPickers("obj-panel");
+      const p = document.getElementById("obj-panel");
+      const tr = document.getElementById("tf_obj_trigger");
+      if (!p.dataset.ready) { renderObjPanel(); p.dataset.ready = "1"; }
+      const open = !p.classList.contains("show");
+      p.classList.toggle("show", open);
+      tr.classList.toggle("open", open);
+    }
+
+    function pickObj(gId, cId, gcId, e) {
+      e.stopPropagation();
+      const leafId = gcId || cId;
+      const dt = findDataType(leafId) || findDataType(cId);
+      if (dt && dt.enabled === false) {
+        toast("该对象本期未开放配置");
+        return;
+      }
+      const g = DATA_MENU_TREE.find(x => x.id === gId);
+      const c = g && (g.children || []).find(x => x.id === cId);
+      let path = g ? g.name : "";
+      if (c) path += " / " + c.name;
+      if (gcId && c) {
+        const gc = (c.children || []).find(x => x.id === gcId);
+        if (gc) path += " / " + gc.name;
+      }
+      const prev = document.getElementById("tf_obj_id").value;
+      if (prev && prev !== leafId && editFields.length) {
+        if (!confirm("切换关联对象将清空已设核采项，是否继续？")) return;
+        editFields = [];
+        updateItemsEntry();
+      }
+      document.getElementById("tf_obj_id").value = leafId;
+      document.getElementById("tf_obj_text").textContent = path;
+      document.getElementById("tf_obj_trigger").classList.add("has-val");
+      document.getElementById("tf_obj_trigger").classList.remove("open");
+      document.getElementById("obj-panel").classList.remove("show");
+    }
+
+    function closeAllPickers(exceptId) {
+      const map = {
+        "src-panel": "tf_src_trigger",
+        "scope-panel": "tf_scope_trigger",
+        "obj-panel": "tf_obj_trigger",
+        "d-range-panel": "d_range_trigger",
+        "d-biz-panel": "d_biz_trigger"
+      };
+      Object.keys(map).forEach(id => {
+        if (id !== exceptId) {
+          const el = document.getElementById(id);
+          if (el) el.classList.remove("show");
+          const tr = document.getElementById(map[id]);
+          if (tr) tr.classList.remove("open");
+        }
+      });
+    }
+
+    document.addEventListener("click", () => closeAllPickers());
+
+    function updateItemsEntry() {
+      const el = document.getElementById("tf_items_text");
+      const row = document.getElementById("tf_items_entry");
+      if (editFields.length) {
+        el.textContent = `已设置 ${editFields.length} 项`;
+        row.classList.add("has-val");
+      } else {
+        el.textContent = "请设置";
+        row.classList.remove("has-val");
+      }
+    }
+
+    function openHcItemsPanel() {
+      const typeId = document.getElementById("tf_obj_id").value;
+      if (!typeId) {
+        toast("请先选择关联核采对象");
+        return;
+      }
+      draftFields = editFields.map(f => ({ ...f }));
+      renderHcItemsDraft();
+      document.getElementById("mask-hc-items").classList.add("show");
+    }
+
+    function renderHcItemsDraft() {
+      const tb = document.getElementById("hc-items-tbody");
+      tb.innerHTML = draftFields.length
+        ? draftFields.map((f, i) => `
+          <tr>
+            <td>${i + 1}</td>
+            <td>${f.cn}</td>
+            <td>${f.en}</td>
+            <td>${f.type}</td>
+            <td><button type="button" class="btn-link danger" onclick="removeDraftField(${i})">删除</button></td>
+          </tr>
+        `).join("")
+        : `<tr><td colspan="5" class="empty">暂无数据</td></tr>`;
+    }
+
+    function removeDraftField(i) {
+      draftFields.splice(i, 1);
+      renderHcItemsDraft();
+    }
+
+    function clearHcItemsDraft() {
+      draftFields = [];
+      renderHcItemsDraft();
+    }
+
+    function confirmHcItems() {
+      editFields = draftFields.map(f => ({ ...f }));
+      updateItemsEntry();
+      document.getElementById("mask-hc-items").classList.remove("show");
+      toast("核采项已确定");
+    }
+
+    function closeHcItemsPanel(force) {
+      document.getElementById("mask-hc-items").classList.remove("show");
+    }
+
+    function closeTableForm() {
+      document.getElementById("mask-table-form").classList.remove("show");
+      document.getElementById("mask-hc-items").classList.remove("show");
+      document.getElementById("mask-field-pool").classList.remove("show");
+    }
+
+    function renderDataUnitList() {
+      const tb = document.getElementById("data-unit-tbody");
+      tb.innerHTML = UNIT_DATA_ROWS.map(r => `
+        <tr>
+          <td>${r.unit_name}</td>
+          <td>${r.community_path}</td>
+          <td>${r.unit_leader}</td>
+          <td>${r.unit_leader_contact}</td>
+          <td>${r.member_count}</td>
+          <td>${r.updateTime}</td>
+          <td><button type="button" class="btn-link" onclick="openUnitDetail('${r.id}')">查看</button></td>
+        </tr>
+      `).join("");
+      document.getElementById("data-unit-count").textContent = UNIT_DATA_ROWS.length;
+    }
+
+    function openUnitDetail(id) {
+      const r = UNIT_DATA_ROWS.find(x => x.id === id);
+      if (!r) return;
+      document.getElementById("unit-detail-body").innerHTML = `
+        <div class="kv"><div class="k">名称</div><div class="v">${r.unit_name}</div></div>
+        <div class="kv"><div class="k">所属村社</div><div class="v">${r.community_path}</div></div>
+        <div class="kv"><div class="k">成员数量</div><div class="v">${r.member_count}</div></div>
+        <div class="kv"><div class="k">单元长</div><div class="v">${r.unit_leader}</div></div>
+        <div class="kv"><div class="k">单元长联系方式</div><div class="v">${r.unit_leader_contact}</div></div>
+        <div class="kv"><div class="k">副单元长及联系方式</div><div class="v">${r.deputy_unit_leader_info || "—"}</div></div>
+        <div class="kv"><div class="k">更新时间</div><div class="v">${r.updateTime}</div></div>
+      `;
+      document.getElementById("mask-unit-detail").classList.add("show");
+    }
+
+    function renderTableList() {
+      const kw = (document.getElementById("tbl-kw").value || "").trim();
+      const list = LOCAL_TABLES.filter(t => !kw || t.name.includes(kw));
+      document.getElementById("tbl-tbody").innerHTML = list.map((t, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td>${t.name}</td>
+          <td>${t.code}</td>
+          <td>${t.dept}</td>
+          <td>${t.src}</td>
+          <td>${dataTypeName(t.dataTypeId)}</td>
+          <td>${t.fields.length}</td>
+          <td>${t.updateTime}</td>
+          <td>
+            <button type="button" class="btn-link" onclick="openTableForm('${t.id}')">查看</button>
+            <button type="button" class="btn-link" onclick="openTableForm('${t.id}')">修改</button>
+          </td>
+        </tr>
+      `).join("");
+    }
+
+    function openTableForm(id) {
+      editingTableId = id || null;
+      document.getElementById("tbl-form-title").textContent = id ? "编辑核采" : "新增核采";
+      closeAllPickers();
+      document.getElementById("src-panel").dataset.ready = "";
+      document.getElementById("obj-panel").dataset.ready = "";
+
+      if (id) {
+        const t = LOCAL_TABLES.find(x => x.id === id);
+        document.getElementById("tf_name").value = t.name;
+        document.getElementById("tf_dept").value = t.dept;
+        document.getElementById("tf_src").value = t.src || "";
+        document.getElementById("tf_src_text").textContent = t.src || "请选择部门";
+        document.getElementById("tf_src_trigger").classList.toggle("has-val", !!t.src);
+        document.getElementById("tf_scope").value = t.scope || "";
+        document.getElementById("tf_scope_text").textContent = t.scope || "请选择";
+        document.getElementById("tf_scope_trigger").classList.toggle("has-val", !!t.scope);
+        scopePath = t.scope ? t.scope.split(" / ") : [];
+        const dt = findDataType(t.dataTypeId);
+        document.getElementById("tf_obj_id").value = t.dataTypeId || "";
+        document.getElementById("tf_obj_text").textContent = dt ? (dt.groupName + " / " + dt.name) : "请选择";
+        document.getElementById("tf_obj_trigger").classList.toggle("has-val", !!t.dataTypeId);
+        editFields = t.fields.map(f => ({ ...f }));
+      } else {
+        document.getElementById("tf_name").value = "";
+        document.getElementById("tf_dept").value = "";
+        document.getElementById("tf_src").value = "";
+        document.getElementById("tf_src_text").textContent = "请选择部门";
+        document.getElementById("tf_src_trigger").classList.remove("has-val");
+        document.getElementById("tf_scope").value = "";
+        document.getElementById("tf_scope_text").textContent = "请选择";
+        document.getElementById("tf_scope_trigger").classList.remove("has-val");
+        scopePath = [];
+        document.getElementById("tf_obj_id").value = "";
+        document.getElementById("tf_obj_text").textContent = "请选择";
+        document.getElementById("tf_obj_trigger").classList.remove("has-val");
+        editFields = [];
+      }
+      updateItemsEntry();
+      document.getElementById("mask-table-form").classList.add("show");
+    }
+
+    let poolCandidates = [];   // 当前可选字段（未在核采项中的）
+    let poolSelected = [];     // 新增字段面板中已勾选
+
+    function openFieldPool() {
+      const typeId = document.getElementById("tf_obj_id").value;
+      const dt = findDataType(typeId);
+      if (!dt) { toast("请先选择关联核采对象"); return; }
+      const used = new Set(draftFields.map(f => f.en));
+      poolCandidates = (dt.fields || []).filter(f => !used.has(f.en));
+      poolSelected = [];
+      document.getElementById("pool-search").value = "";
+      document.getElementById("pool-check-all").checked = false;
+      renderFieldPoolSelected();
+      renderFieldPoolList();
+      document.getElementById("mask-field-pool").classList.add("show");
+    }
+
+    function renderFieldPoolSelected() {
+      document.getElementById("pool-selected-count").textContent = String(poolSelected.length);
+      const box = document.getElementById("pool-selected-tags");
+      if (!poolSelected.length) {
+        box.innerHTML = "";
+        return;
+      }
+      box.innerHTML = poolSelected.map(f => `
+        <span class="tag-chip">
+          ${f.cn}
+          <button type="button" title="移除" onclick="togglePoolSelect('${f.en}', false)">×</button>
+        </span>
+      `).join("");
+    }
+
+    function getFilteredPool() {
+      const kw = (document.getElementById("pool-search").value || "").trim().toLowerCase();
+      let list = poolCandidates;
+      if (kw) {
+        list = list.filter(f =>
+          (f.cn && f.cn.toLowerCase().includes(kw)) ||
+          (f.en && f.en.toLowerCase().includes(kw)) ||
+          (f.type && f.type.toLowerCase().includes(kw))
+        );
+      }
+      return list;
+    }
+
+    function renderFieldPoolList() {
+      const list = getFilteredPool();
+      const wrap = document.getElementById("field-pool-list");
+      document.getElementById("pool-filter-hint").textContent =
+        list.length ? `共 ${list.length} 个可选字段` : "";
+      if (!list.length) {
+        wrap.innerHTML = `<div class="pool-empty">暂无数据</div>`;
+        document.getElementById("pool-check-all").checked = false;
+        return;
+      }
+      const selSet = new Set(poolSelected.map(f => f.en));
+      const allChecked = list.every(f => selSet.has(f.en));
+      document.getElementById("pool-check-all").checked = allChecked;
+      wrap.innerHTML = list.map(f => {
+        const checked = selSet.has(f.en);
+        return `
+          <div class="pool-item ${checked ? "active" : ""}" onclick="togglePoolSelect('${f.en}')">
+            <input type="checkbox" ${checked ? "checked" : ""} onclick="event.stopPropagation(); togglePoolSelect('${f.en}')" />
+            <div class="meta">
+              <div class="cn">${f.cn}</div>
+              <div class="en">${f.en} · ${f.type}</div>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function togglePoolSelect(en, forceOff) {
+      const idx = poolSelected.findIndex(f => f.en === en);
+      if (forceOff === false || (forceOff !== true && idx >= 0)) {
+        if (idx >= 0) poolSelected.splice(idx, 1);
+      } else {
+        const f = poolCandidates.find(x => x.en === en);
+        if (f && idx < 0) poolSelected.push({ ...f });
+      }
+      renderFieldPoolSelected();
+      renderFieldPoolList();
+    }
+
+    function togglePoolSelectAll(checked) {
+      const list = getFilteredPool();
+      if (checked) {
+        list.forEach(f => {
+          if (!poolSelected.find(x => x.en === f.en)) poolSelected.push({ ...f });
+        });
+      } else {
+        const drop = new Set(list.map(f => f.en));
+        poolSelected = poolSelected.filter(f => !drop.has(f.en));
+      }
+      renderFieldPoolSelected();
+      renderFieldPoolList();
+    }
+
+    function clearFieldPoolSelect() {
+      poolSelected = [];
+      document.getElementById("pool-check-all").checked = false;
+      renderFieldPoolSelected();
+      renderFieldPoolList();
+    }
+
+    function closeFieldPool() {
+      document.getElementById("mask-field-pool").classList.remove("show");
+    }
+
+    function confirmFieldPool() {
+      if (!poolSelected.length) {
+        toast("请至少选择一个字段");
+        return;
+      }
+      const exist = new Set(draftFields.map(f => f.en));
+      let n = 0;
+      poolSelected.forEach(f => {
+        if (!exist.has(f.en)) {
+          draftFields.push({ cn: f.cn, en: f.en, type: f.type });
+          n++;
+        }
+      });
+      closeFieldPool();
+      renderHcItemsDraft();
+      toast(n ? `已添加 ${n} 个字段` : "无新字段可添加");
+    }
+
+    function saveTableForm() {
+      const name = document.getElementById("tf_name").value.trim();
+      const dept = document.getElementById("tf_dept").value.trim();
+      const src = document.getElementById("tf_src").value.trim();
+      const scope = document.getElementById("tf_scope").value.trim();
+      const dataTypeId = document.getElementById("tf_obj_id").value;
+      if (!name) { toast("请填写核采表名称"); return; }
+      if (!dept) { toast("请填写牵头部门"); return; }
+      if (!src) { toast("请选择来源单位"); return; }
+      if (!scope) { toast("请选择适用范围"); return; }
+      if (!dataTypeId) { toast("请选择关联核采对象"); return; }
+      if (!editFields.length) { toast("请设置核采项"); return; }
+
+      const now = new Date();
+      const pad = n => String(n).padStart(2, "0");
+      const ts = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+
+      if (editingTableId) {
+        const t = LOCAL_TABLES.find(x => x.id === editingTableId);
+        t.name = name; t.dept = dept; t.src = src; t.scope = scope;
+        t.dataTypeId = dataTypeId;
+        t.fields = editFields.map(f => ({ ...f }));
+        t.updateTime = ts;
+      } else {
+        LOCAL_TABLES.unshift({
+          id: "t" + Date.now(),
+          name, dept, src, scope, dataTypeId,
+          code: "HC" + Date.now().toString().slice(-10),
+          status: "已上线",
+          updateTime: ts,
+          fields: editFields.map(f => ({ ...f }))
+        });
+      }
+      toast("保存成功");
+      closeTableForm();
+      renderTableList();
+    }
+
+    let areaType = "collect"; // visit | collect | order | special | warn（侧栏选择）
+    let areaSrc = "prov";     // local | prov  地市任务 | 省级贯通任务
+    let areaSub = "current";  // current | history
+
+    function renderAreaList() {
+      // 高亮侧栏辖区子类型，并展开分组
+      document.querySelectorAll('#sidebar-task .menu-item[data-view="area-list"]').forEach(m => {
+        m.classList.toggle("active", m.dataset.areatype === areaType);
+      });
+      const areaGroup = document.getElementById("group-area-task");
+      const areaParent = document.querySelector('[data-toggle="group-area-task"]');
+      if (areaGroup) areaGroup.classList.add("open");
+      if (areaParent) areaParent.classList.add("open");
+
+      const isCollect = areaType === "collect";
+      document.getElementById("area-table-wrap").style.display = isCollect ? "block" : "none";
+      document.getElementById("area-empty-other").style.display = isCollect ? "none" : "block";
+      document.getElementById("area-src-tabs").style.display = isCollect ? "flex" : "none";
+      document.getElementById("area-sub-tabs").style.display = isCollect ? "flex" : "none";
+      document.getElementById("area-toolbar").style.display = isCollect ? "flex" : "none";
+      if (!isCollect) {
+        const names = {
+          visit: "走访巡查", order: "指令下达", special: "专项拉练", warn: "预警任务"
+        };
+        document.getElementById("area-empty-other").textContent =
+          `「${names[areaType] || "该类型"}」本期仅作菜单占位，暂无列表数据`;
+        return;
+      }
+
+      // 地市任务分表本期空；省级贯通=已下发的省任务
+      let list = [];
+      if (areaSrc === "prov") {
+        list = provTasks.filter(t => {
+          if (areaSub === "current") return t.localStatus === "进行中" || t.localStatus === "未开始";
+          return t.localStatus === "已结束";
+        });
+      }
+
+      const sf = (document.getElementById("area-status-filter") || {}).value;
+      const kw = ((document.getElementById("area-kw") || {}).value || "").trim();
+      const kn = ((document.getElementById("area-kw-name") || {}).value || "").trim();
+      if (areaSub === "current" && sf) list = list.filter(t => t.localStatus === sf);
+      if (kw) list = list.filter(t => t.taskCode.includes(kw));
+      if (kn) list = list.filter(t => t.taskTitle.includes(kn));
+
+      const stSel = document.getElementById("area-status-filter");
+      if (stSel) stSel.style.display = areaSub === "current" ? "" : "none";
+
+      document.getElementById("area-tbody").innerHTML = list.length
+        ? list.map((t, i) => `
+          <tr>
+            <td>${i + 1}</td>
+            <td>${t.taskCode}</td>
+            <td title="${t.taskTitle}">${t.taskTitle.length > 16 ? t.taskTitle.slice(0, 16) + "…" : t.taskTitle}</td>
+            <td>省级贯通</td>
+            <td>省贯通</td>
+            <td>平安法治_应急小单元</td>
+            <td>${t.taskType === 1 ? "周期" : "一次"}</td>
+            <td><span class="tag tag-blue">普通</span></td>
+            <td>${statusTag(t.localStatus)}</td>
+            <td>${t.manualDispatchTime ? t.manualDispatchTime.slice(0, 10) : "—"}</td>
+            <td>${t.taskBegin}</td>
+            <td>${t.taskEnd}</td>
+            <td>${t.objectNum ?? t.stats.total}</td>
+            <td>
+              <button type="button" class="btn-link" onclick="openProgress('${t.taskCode}')">进度</button>
+              <button type="button" class="btn-link" onclick="openProvDetail('${t.taskCode}')">任务详情</button>
+            </td>
+          </tr>
+        `).join("")
+        : `<tr><td colspan="14" class="empty">${areaSrc === "local" ? "地市任务暂无数据（分表）" : "暂无数据"}</td></tr>`;
+    }
+
+    document.getElementById("area-src-tabs").addEventListener("click", (e) => {
+      const tab = e.target.closest(".tab");
+      if (!tab) return;
+      document.querySelectorAll("#area-src-tabs .tab").forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+      areaSrc = tab.dataset.src;
+      renderAreaList();
+    });
+    document.getElementById("area-sub-tabs").addEventListener("click", (e) => {
+      const tab = e.target.closest(".tab");
+      if (!tab) return;
+      document.querySelectorAll("#area-sub-tabs .tab").forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+      areaSub = tab.dataset.sub;
+      renderAreaList();
+    });
+
+    // ---------- 我的任务（侧栏待办/历史 + 类型 Tab + 地市/省级） ----------
+    let myType = "collect";
+    let mySrc = "prov";
+    let myListSub = "todo"; // todo | history  对应侧栏 待办任务 / 历史任务
+
+    function renderMyList() {
+      // 高亮侧栏 待办/历史
+      document.querySelectorAll('#sidebar-task .menu-item[data-view="my-todo"]').forEach(m => {
+        m.classList.toggle("active", m.dataset.mysub === myListSub);
+      });
+      // 确保「我的任务」分组展开
+      const myGroup = document.getElementById("group-my-task");
+      const myParent = document.querySelector('[data-toggle="group-my-task"]');
+      if (myGroup) myGroup.classList.add("open");
+      if (myParent) myParent.classList.add("open");
+
+      const todoCnt = provTasks.filter(t => t.localStatus === "进行中" || t.localStatus === "未开始").length;
+      const hisCnt = provTasks.filter(t => t.localStatus === "已结束").length;
+      const typeCnt = myListSub === "todo" ? todoCnt : hisCnt;
+
+      document.querySelectorAll("#my-type-tabs .tab").forEach(tab => {
+        const t = tab.dataset.type;
+        if (t === "collect") tab.textContent = `数据核采(${typeCnt})`;
+        else if (t === "visit") tab.textContent = "走访巡查(0)";
+        else tab.textContent = "指令下达(0)";
+      });
+
+      const isCollect = myType === "collect";
+      document.getElementById("my-table-wrap").style.display = isCollect ? "block" : "none";
+      document.getElementById("my-empty-other").style.display = isCollect ? "none" : "block";
+      document.getElementById("my-src-tabs").style.display = isCollect ? "flex" : "none";
+      document.getElementById("my-toolbar").style.display = isCollect ? "flex" : "none";
+      if (!isCollect) return;
+
+      // 状态筛：待办不展示已结束；历史固定已结束
+      const stSel = document.getElementById("my-status-filter");
+      if (stSel) stSel.style.display = myListSub === "todo" ? "" : "none";
+
+      let list = [];
+      if (mySrc === "prov") {
+        if (myListSub === "todo") {
+          list = provTasks.filter(t => t.localStatus === "进行中" || t.localStatus === "未开始");
+        } else {
+          list = provTasks.filter(t => t.localStatus === "已结束");
+        }
+      } else {
+        list = []; // 地市任务分表
+      }
+
+      const sf = (document.getElementById("my-status-filter") || {}).value;
+      const kw = ((document.getElementById("my-kw") || {}).value || "").trim();
+      if (myListSub === "todo" && sf) list = list.filter(t => t.localStatus === sf);
+      if (kw) list = list.filter(t => t.taskTitle.includes(kw) || t.taskCode.includes(kw));
+
+      document.getElementById("my-tbody").innerHTML = list.length
+        ? list.map((t, i) => `
+          <tr>
+            <td>${i + 1}</td>
+            <td>${t.taskCode}</td>
+            <td title="${t.taskTitle}">${t.taskTitle.length > 16 ? t.taskTitle.slice(0, 16) + "…" : t.taskTitle}</td>
+            <td>省级贯通</td>
+            <td>省贯通</td>
+            <td>平安法治_应急小单元</td>
+            <td>${t.taskType === 1 ? "周期" : "一次"}</td>
+            <td><span class="tag tag-blue">普通</span></td>
+            <td>${statusTag(t.localStatus)}</td>
+            <td>${t.manualDispatchTime ? t.manualDispatchTime.slice(0, 10) : "—"}</td>
+            <td>${t.taskBegin}</td>
+            <td>${t.taskEnd}</td>
+            <td>${t.objectNum ?? t.stats.total}</td>
+            <td>
+              <button type="button" class="btn-link" onclick="openProgress('${t.taskCode}')">进度</button>
+              <button type="button" class="btn-link" onclick="openProvDetail('${t.taskCode}')">任务详情</button>
+            </td>
+          </tr>
+        `).join("")
+        : `<tr><td colspan="14" class="empty">${mySrc === "local" ? "地市任务暂无数据（分表）" : "暂无数据"}</td></tr>`;
+    }
+
+    document.getElementById("my-type-tabs").addEventListener("click", (e) => {
+      const tab = e.target.closest(".tab");
+      if (!tab) return;
+      document.querySelectorAll("#my-type-tabs .tab").forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+      myType = tab.dataset.type;
+      renderMyList();
+    });
+    document.getElementById("my-src-tabs").addEventListener("click", (e) => {
+      const tab = e.target.closest(".tab");
+      if (!tab) return;
+      document.querySelectorAll("#my-src-tabs .tab").forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+      mySrc = tab.dataset.src;
+      renderMyList();
+    });
+
+    // init
+    editFields = [];
+    draftFields = [];
+    renderProvList();
+  </script>
+</body>
+</html>

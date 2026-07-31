@@ -1,0 +1,1541 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <title>数据核采 · 移动端原型</title>
+  <style>
+    :root {
+      --primary: #1677ff;
+      --primary-press: #0958d9;
+      --danger: #ff4d4f;
+      --text: #262626;
+      --text-2: #8c8c8c;
+      --text-3: #bfbfbf;
+      --border: #f0f0f0;
+      --bg: #f5f6f8;
+      --card: #ffffff;
+      --tag-bg: #e6f4ff;
+      --tag-border: #91caff;
+      --radius: 10px;
+      --nav-h: 48px;
+      --safe-b: env(safe-area-inset-bottom, 0px);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue",
+        "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: #dcdcdc;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .phone-shell {
+      max-width: 390px;
+      height: min(844px, 100vh);
+      margin: 0 auto;
+      background: var(--bg);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 0 0 1px rgba(0,0,0,.06), 0 12px 40px rgba(0,0,0,.12);
+    }
+    @media (max-width: 420px) {
+      .phone-shell { max-width: 100%; height: 100vh; box-shadow: none; }
+    }
+
+    .page {
+      display: none;
+      flex-direction: column;
+      height: 100%;
+      background: var(--bg);
+    }
+    .page.active { display: flex; }
+
+    .nav {
+      height: var(--nav-h);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      font-size: 17px;
+      font-weight: 600;
+    }
+    .nav-back {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      padding: 0 12px 0 8px;
+      display: flex;
+      align-items: center;
+      gap: 0;
+      color: #333;
+      font-size: 15px;
+      font-weight: 400;
+      cursor: pointer;
+      user-select: none;
+    }
+    .nav-back svg { width: 22px; height: 22px; }
+    .nav-title {
+      max-width: 58%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      text-align: center;
+    }
+    .nav-right {
+      position: absolute;
+      right: 14px; top: 0; bottom: 0;
+      display: flex;
+      align-items: center;
+      color: var(--primary);
+      font-size: 15px;
+      font-weight: 400;
+      cursor: pointer;
+    }
+    .nav-right.danger { color: var(--danger); }
+
+    .search-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: #fff;
+      flex-shrink: 0;
+    }
+    .search-input {
+      flex: 1;
+      height: 36px;
+      border-radius: 18px;
+      border: none;
+      outline: none;
+      padding: 0 14px 0 36px;
+      font-size: 14px;
+      color: var(--text);
+      background: #f5f5f5 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='15' fill='%23bfbfbf' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85zm-5.242.656a5 5 0 1 1 0-10 5 5 0 0 1 0 10z'/%3E%3C/svg%3E") 12px center no-repeat;
+    }
+    .search-input::placeholder { color: var(--text-3); }
+    .filter-text {
+      font-size: 14px;
+      color: #595959;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      cursor: pointer;
+    }
+
+    .tabs {
+      display: flex;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 12px 2px 11px;
+      font-size: 15px;
+      color: #595959;
+      position: relative;
+      cursor: pointer;
+      user-select: none;
+    }
+    .tab.active { color: var(--primary); font-weight: 600; }
+    .tab.active::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: 0;
+      transform: translateX(-50%);
+      width: 28px;
+      height: 3px;
+      border-radius: 2px;
+      background: var(--primary);
+    }
+    .tab .badge {
+      display: inline-block;
+      min-width: 16px;
+      height: 16px;
+      line-height: 16px;
+      padding: 0 4px;
+      margin-left: 2px;
+      border-radius: 8px;
+      background: var(--danger);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 500;
+      vertical-align: top;
+    }
+
+    .scroll {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 12px;
+      padding-bottom: calc(16px + var(--safe-b));
+    }
+    .scroll.no-pad { padding: 0; }
+    .scroll.with-footer { padding-bottom: calc(72px + var(--safe-b)); }
+
+    /* 任务卡片 — 对齐原「数据核查」卡片 */
+    .task-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 14px 14px 12px;
+      margin-bottom: 12px;
+      box-shadow: 0 1px 2px rgba(0,0,0,.03);
+      cursor: pointer;
+    }
+    .task-card:active { background: #fafafa; }
+    .task-card-hd {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .task-type-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .type-label { font-size: 15px; font-weight: 600; }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      height: 20px;
+      padding: 0 6px;
+      border-radius: 3px;
+      font-size: 11px;
+      border: 1px solid transparent;
+    }
+    .tag-priority {
+      color: var(--primary);
+      background: var(--tag-bg);
+      border-color: var(--tag-border);
+    }
+    .tag-type {
+      color: var(--primary);
+      background: #fff;
+      border-color: var(--tag-border);
+      font-size: 12px;
+      height: 22px;
+      padding: 0 8px;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+    .more-btn {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      border: 1px solid #e8e8e8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #8c8c8c;
+      font-size: 14px;
+      letter-spacing: 1px;
+      background: #fff;
+    }
+    .task-name {
+      font-size: 15px;
+      line-height: 1.45;
+      margin-bottom: 10px;
+      word-break: break-all;
+    }
+    .task-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      margin-bottom: 10px;
+      gap: 8px;
+    }
+    .remain {
+      color: var(--danger);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+    .remain .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--danger);
+    }
+    .end-time { color: var(--text-2); text-align: right; }
+    .task-stats {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      color: var(--text-2);
+      margin-bottom: 8px;
+    }
+    .progress {
+      height: 6px;
+      background: #f0f0f0;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .progress > i {
+      display: block;
+      height: 100%;
+      background: linear-gradient(90deg, #69b1ff, var(--primary));
+      border-radius: 3px;
+      transition: width .25s ease;
+    }
+    .empty-tip {
+      text-align: center;
+      color: var(--text-3);
+      font-size: 13px;
+      padding: 28px 0 16px;
+    }
+
+    /* 记录列表 — 对齐原对象列表 */
+    .record-list { background: #fff; overflow: hidden; }
+    /* 左滑删除 */
+    .swipe-row {
+      position: relative;
+      overflow: hidden;
+      border-bottom: 1px solid var(--border);
+      background: #fff;
+      touch-action: pan-y;
+    }
+    .swipe-actions {
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      display: flex;
+      align-items: stretch;
+      z-index: 0;
+    }
+    .swipe-del {
+      width: 76px;
+      border: none;
+      background: var(--danger);
+      color: #fff;
+      font-size: 15px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .swipe-del:active { background: #d9363e; }
+    .record-item {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 14px 16px;
+      background: #fff;
+      cursor: pointer;
+      transition: transform .2s ease;
+      will-change: transform;
+    }
+    .record-item:active { background: #fafafa; }
+    .record-body { flex: 1; min-width: 0; }
+    .record-title-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .record-title {
+      font-size: 15px;
+      font-weight: 500;
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .record-loc {
+      display: flex;
+      align-items: flex-start;
+      gap: 4px;
+      font-size: 13px;
+      color: var(--text-2);
+      line-height: 1.4;
+    }
+    .record-sub {
+      margin-top: 4px;
+      font-size: 12px;
+      color: var(--text-3);
+    }
+    .chevron {
+      color: #d9d9d9;
+      font-size: 18px;
+      line-height: 1;
+      margin-top: 2px;
+      flex-shrink: 0;
+      font-weight: 300;
+    }
+
+    /* 列表底部通栏新增按钮 */
+    .list-bottom-bar {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 10px 16px calc(10px + var(--safe-b));
+      background: #fff;
+      border-top: 1px solid var(--border);
+      z-index: 5;
+    }
+    .list-bottom-bar .btn-primary {
+      width: 100%;
+      height: 44px;
+      border: none;
+      border-radius: 8px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .list-bottom-bar .btn-primary:active { background: var(--primary-press); }
+
+    /* 详情 */
+    .detail-block { background: #fff; margin-bottom: 10px; }
+    .detail-block .block-title {
+      padding: 14px 14px 10px;
+      font-size: 16px;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+    .kv-row {
+      display: flex;
+      padding: 12px 14px;
+      border-top: 1px solid var(--border);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .kv-row .k { width: 100px; flex-shrink: 0; color: var(--text-2); }
+    .kv-row .v { flex: 1; color: var(--text); word-break: break-all; }
+    .detail-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 12px 14px 16px;
+      background: #fff;
+      margin-bottom: 10px;
+    }
+    .stat-box {
+      background: #f7f9fc;
+      border-radius: 8px;
+      padding: 12px 8px;
+      text-align: center;
+    }
+    .stat-box .num {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 4px;
+    }
+    .stat-box .lbl { font-size: 12px; color: var(--text-2); }
+    .rate-formula {
+      padding: 0 14px 14px;
+      font-size: 12px;
+      color: var(--text-3);
+      line-height: 1.5;
+      background: #fff;
+      margin-top: -10px;
+      margin-bottom: 10px;
+    }
+
+    .bottom-bar {
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      padding: 10px 16px calc(10px + var(--safe-b));
+      background: #fff;
+      border-top: 1px solid var(--border);
+      z-index: 6;
+    }
+    .btn-primary {
+      width: 100%;
+      height: 44px;
+      border: none;
+      border-radius: 8px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .btn-primary:active { background: var(--primary-press); }
+
+    /* 表单 — 对齐原核查表字段行 */
+    .form-list { background: #fff; }
+    .form-row {
+      display: flex;
+      align-items: center;
+      min-height: 52px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      gap: 12px;
+    }
+    .form-label {
+      width: 130px;
+      flex-shrink: 0;
+      font-size: 15px;
+      color: var(--text);
+      line-height: 1.35;
+    }
+    .form-label .req { color: var(--danger); margin-right: 2px; }
+    .form-control {
+      flex: 1;
+      min-width: 0;
+      border: none;
+      outline: none;
+      font-size: 15px;
+      text-align: right;
+      color: var(--text);
+      background: transparent;
+      font-family: inherit;
+    }
+    .form-control::placeholder { color: var(--text-3); }
+    .form-picker {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 4px;
+      min-width: 0;
+      cursor: pointer;
+      font-size: 15px;
+      color: var(--text);
+    }
+    .form-picker .val {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      text-align: right;
+    }
+    .form-picker .ph { color: var(--text-3); }
+    .form-picker .arrow { color: #d9d9d9; flex-shrink: 0; font-size: 16px; }
+
+    .deputy-wrap {
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      padding: 12px 14px 4px;
+    }
+    .deputy-hd {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .deputy-hd .form-label { width: auto; }
+    .deputy-add {
+      font-size: 14px;
+      color: var(--primary);
+      border: none;
+      background: none;
+      cursor: pointer;
+    }
+    .deputy-card {
+      background: #f7f9fc;
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+    }
+    .deputy-card-hd {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+      font-size: 13px;
+      color: var(--text-2);
+    }
+    .deputy-card-hd button {
+      border: none;
+      background: none;
+      color: var(--danger);
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .deputy-fields .form-row {
+      padding: 10px 0;
+      min-height: 40px;
+      border-bottom: 1px solid #eef0f3;
+    }
+    .deputy-fields .form-row:last-child { border-bottom: none; }
+    .deputy-fields .form-label {
+      width: 72px;
+      font-size: 14px;
+      color: var(--text-2);
+    }
+    .deputy-fields .form-control {
+      text-align: left;
+      font-size: 14px;
+    }
+
+    .mask {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,.45);
+      z-index: 20;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .mask.show { display: flex; }
+    .mask.center { align-items: center; padding: 24px; }
+    .sheet {
+      width: 100%;
+      background: #fff;
+      border-radius: 12px 12px 0 0;
+      max-height: 70%;
+      overflow: hidden;
+      animation: slideUp .22s ease;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+    .sheet-hd {
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 14px;
+      border-bottom: 1px solid var(--border);
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .sheet-hd .cancel { color: var(--text-2); font-weight: 400; font-size: 15px; cursor: pointer; }
+    .sheet-hd .ok { color: var(--primary); font-weight: 500; font-size: 15px; cursor: pointer; }
+    .sheet-body { max-height: 360px; overflow-y: auto; }
+    .sheet-item {
+      padding: 14px 16px;
+      font-size: 15px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+    }
+    .sheet-item.active { color: var(--primary); }
+    .sheet-item:active { background: #f5f5f5; }
+
+    .dialog {
+      width: 100%;
+      max-width: 300px;
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      animation: fadeIn .18s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(.96); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .dialog-body {
+      padding: 24px 20px 18px;
+      text-align: center;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+    .dialog-title { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+    .dialog-actions {
+      display: flex;
+      border-top: 1px solid var(--border);
+    }
+    .dialog-actions button {
+      flex: 1;
+      height: 46px;
+      border: none;
+      background: #fff;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .dialog-actions button + button {
+      border-left: 1px solid var(--border);
+      color: var(--danger);
+      font-weight: 500;
+    }
+    .dialog-actions .cancel { color: var(--text-2); }
+
+    .toast {
+      position: absolute;
+      left: 50%;
+      top: 46%;
+      transform: translate(-50%, -50%);
+      background: rgba(0,0,0,.75);
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 14px;
+      z-index: 40;
+      display: none;
+      pointer-events: none;
+      max-width: 80%;
+      text-align: center;
+    }
+    .toast.show { display: block; }
+
+    .list-summary {
+      padding: 10px 12px 0;
+      font-size: 12px;
+      color: var(--text-2);
+      background: var(--bg);
+    }
+
+    /* 开发说明条：黄底 + 红色「开发说明」前缀，避免与正式文案混淆 */
+    .dev-tip {
+      margin: 8px 12px 0;
+      padding: 8px 10px;
+      background: #fff7e6;
+      border: 1px solid #ffe58f;
+      border-radius: 6px;
+      font-size: 12px;
+      color: #ad6800;
+      line-height: 1.45;
+    }
+    .dev-tip .dev-label {
+      color: #f5222d;
+      font-weight: 600;
+      margin-right: 4px;
+    }
+
+    /* 任务详情：自下而上弹层（对齐原数据核查） */
+    .mask-detail {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,.45);
+      z-index: 30;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .mask-detail.show { display: flex; }
+    .detail-sheet {
+      width: 100%;
+      max-height: 78%;
+      background: #fff;
+      border-radius: 12px 12px 0 0;
+      display: flex;
+      flex-direction: column;
+      animation: slideUp .22s ease;
+      overflow: hidden;
+    }
+    .detail-sheet-hd {
+      height: 50px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 17px;
+      font-weight: 600;
+      color: #262626;
+    }
+    .detail-sheet-close {
+      position: absolute;
+      right: 14px;
+      top: 0; bottom: 0;
+      display: flex;
+      align-items: center;
+      font-size: 22px;
+      color: #8c8c8c;
+      cursor: pointer;
+      line-height: 1;
+      border: none;
+      background: none;
+      padding: 0 4px;
+    }
+    .detail-sheet-body {
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: calc(16px + var(--safe-b));
+    }
+    .detail-sheet-row {
+      display: flex;
+      align-items: flex-start;
+      padding: 16px 16px;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 15px;
+      line-height: 1.5;
+      gap: 16px;
+    }
+    .detail-sheet-row .k {
+      width: 88px;
+      flex-shrink: 0;
+      color: #262626;
+      font-weight: 500;
+    }
+    .detail-sheet-row .v {
+      flex: 1;
+      text-align: right;
+      color: #8c8c8c;
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+  <div class="phone-shell" id="app">
+    <!-- P1 我的任务 -->
+    <section class="page active" id="page-task-list">
+      <div class="nav">
+        <div class="nav-back" onclick="toast('返回')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          返回
+        </div>
+        <div class="nav-title">我的任务</div>
+      </div>
+      <div class="search-bar">
+        <input class="search-input" placeholder="请输入任务名称" />
+        <div class="filter-text">全部 <span style="font-size:10px;color:#bfbfbf">▼</span></div>
+      </div>
+      <div class="tabs" id="task-type-tabs">
+        <div class="tab" data-tab="visit">走访巡查</div>
+        <div class="tab active" data-tab="collect">数据核采<span class="badge" id="tab-badge">1</span></div>
+        <div class="tab" data-tab="order">指令下达</div>
+      </div>
+      <div class="scroll" id="task-list-scroll">
+        <div class="task-card" onclick="go('page-record-list')">
+          <div class="task-card-hd">
+            <div class="task-type-row">
+              <span class="type-label">数据核采</span>
+              <span class="tag tag-priority">普通</span>
+            </div>
+            <div class="more-btn" onclick="event.stopPropagation(); openTaskDetail()" title="任务详情">···</div>
+          </div>
+          <div class="task-name" id="card-task-name">基层应急消防小单元数据核采任务20260728</div>
+          <div class="task-meta">
+            <span class="remain"><span class="dot"></span>剩余：<span id="card-remain">5天12小时</span></span>
+            <span class="end-time">结束时间：2026-08-03</span>
+          </div>
+          <div class="task-stats">
+            <span>核采数据：<span id="card-total">0</span></span>
+          </div>
+        </div>
+        <div class="empty-tip">没有更多了</div>
+      </div>
+    </section>
+
+    <!-- P2 核采数据列表（点任务直接进入） -->
+    <section class="page" id="page-record-list">
+      <div class="nav">
+        <div class="nav-back" onclick="go('page-task-list')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          返回
+        </div>
+        <div class="nav-title" id="record-nav-title">应急小单元数据核采…</div>
+      </div>
+      <div class="search-bar">
+        <input class="search-input" id="record-search" placeholder="搜索" oninput="filterRecords()" />
+      </div>
+      <div class="list-summary" id="list-summary">共 0 条</div>
+      <div class="scroll no-pad with-footer">
+        <div class="record-list" id="record-list"></div>
+        <div class="empty-tip" id="record-empty" style="display:none;">暂无记录，点击底部新增</div>
+        <div class="empty-tip" id="record-end">没有更多了</div>
+      </div>
+      <div class="list-bottom-bar">
+        <button type="button" class="btn-primary" onclick="openForm('create')">新增</button>
+      </div>
+    </section>
+
+    <!-- P4 表单：字段顺序与省采集表一致 -->
+    <section class="page" id="page-form">
+      <div class="nav">
+        <div class="nav-back" onclick="go('page-record-list')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          返回
+        </div>
+        <div class="nav-title" id="form-nav-title">新增应急小单元</div>
+        <div class="nav-right danger" id="form-delete-btn" style="display:none;" onclick="confirmDelete()">删除</div>
+      </div>
+      <div class="scroll with-footer no-pad">
+        <div class="form-list">
+          <!-- 名称 → 所属村社(区县/乡镇/村社 合一) → 成员数 → 单元长 → 联系方式 → 副单元长 -->
+          <div class="form-row">
+            <div class="form-label"><span class="req">*</span>名称</div>
+            <input class="form-control" id="f_unit_name" placeholder="请输入" maxlength="100" />
+          </div>
+          <div class="form-row" onclick="openRegionPicker()">
+            <div class="form-label"><span class="req">*</span>所属村社</div>
+            <div class="form-picker">
+              <span class="val" id="f_region_text">永康市/东城街道/城西社区</span>
+              <span class="arrow">›</span>
+            </div>
+          </div>
+          <!-- 提交仍拆分为市/县/街/村/adcode，界面不展示编码 -->
+          <input type="hidden" id="f_city_name" value="金华市" />
+          <input type="hidden" id="f_district_name" value="永康市" />
+          <input type="hidden" id="f_street_name" value="东城街道" />
+          <input type="hidden" id="f_community_name" value="城西社区" />
+          <input type="hidden" id="f_adcode" value="330784001001" />
+          <div class="form-row">
+            <div class="form-label"><span class="req">*</span>成员数量</div>
+            <input class="form-control" id="f_member_count" type="number" min="0" inputmode="numeric" placeholder="请输入" />
+          </div>
+          <div class="form-row">
+            <div class="form-label"><span class="req">*</span>单元长</div>
+            <input class="form-control" id="f_unit_leader" placeholder="请输入" maxlength="32" />
+          </div>
+          <div class="form-row">
+            <div class="form-label"><span class="req">*</span>单元长联系方式</div>
+            <input class="form-control" id="f_unit_leader_contact" type="tel" placeholder="请输入" maxlength="32" />
+          </div>
+        </div>
+
+        <div class="deputy-wrap">
+          <div class="deputy-hd">
+            <div class="form-label"><span class="req">*</span>副单元长及联系方式</div>
+            <button type="button" class="deputy-add" onclick="addDeputy()">+ 添加</button>
+          </div>
+          <div id="deputy-list"></div>
+        </div>
+      </div>
+      <div class="bottom-bar">
+        <button class="btn-primary" onclick="submitForm()">提交</button>
+      </div>
+    </section>
+
+    <!-- 任务详情：自下而上弹窗（点卡片右上角 ···） -->
+    <div class="mask-detail" id="mask-task-detail" onclick="if(event.target===this)closeTaskDetail()">
+      <div class="detail-sheet">
+        <div class="detail-sheet-hd">
+          任务详情
+          <button type="button" class="detail-sheet-close" onclick="closeTaskDetail()" aria-label="关闭">×</button>
+        </div>
+        <div class="detail-sheet-body">
+          <div class="detail-sheet-row">
+            <div class="k">任务名称</div>
+            <div class="v" id="sheet-task-name">—</div>
+          </div>
+          <div class="detail-sheet-row">
+            <div class="k">任务描述</div>
+            <div class="v" id="sheet-task-desc">—</div>
+          </div>
+          <div class="detail-sheet-row">
+            <div class="k">来源单位</div>
+            <div class="v" id="sheet-source-org">—</div>
+          </div>
+          <div class="detail-sheet-row">
+            <div class="k">来源层级</div>
+            <div class="v" id="sheet-source-level">—</div>
+          </div>
+          <div class="detail-sheet-row">
+            <div class="k">任务类型</div>
+            <div class="v">数据核采</div>
+          </div>
+          <div class="detail-sheet-row">
+            <div class="k">业务分类</div>
+            <div class="v" id="sheet-biz">—</div>
+          </div>
+          <div class="detail-sheet-row">
+            <div class="k">周期类型</div>
+            <div class="v" id="sheet-cycle">—</div>
+          </div>
+          <div class="detail-sheet-row">
+            <div class="k">任务编号</div>
+            <div class="v" id="sheet-code">—</div>
+          </div>
+          <div class="detail-sheet-row">
+            <div class="k">核采表</div>
+            <div class="v" id="sheet-table">—</div>
+          </div>
+          <div class="detail-sheet-row">
+            <div class="k">业务对象</div>
+            <div class="v" id="sheet-object">—</div>
+          </div>
+          <div class="detail-sheet-row">
+            <div class="k">开始时间</div>
+            <div class="v" id="sheet-begin">—</div>
+          </div>
+          <div class="detail-sheet-row">
+            <div class="k">结束时间</div>
+            <div class="v" id="sheet-end">—</div>
+          </div>
+          <div class="detail-sheet-row">
+            <div class="k">核采数据</div>
+            <div class="v" id="sheet-total">0</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 区划 -->
+    <div class="mask" id="mask-region" onclick="if(event.target===this)closeMask('mask-region')">
+      <div class="sheet">
+        <div class="sheet-hd">
+          <span class="cancel" onclick="closeMask('mask-region')">取消</span>
+          <span>选择所属村社</span>
+          <span class="ok" onclick="applyRegion()">确定</span>
+        </div>
+        <div class="sheet-body" id="region-options"></div>
+      </div>
+    </div>
+
+    <!-- 删除 -->
+    <div class="mask center" id="mask-delete" onclick="if(event.target===this)closeMask('mask-delete')">
+      <div class="dialog">
+        <div class="dialog-body">
+          <div class="dialog-title">确认删除</div>
+          <div id="delete-msg">删除后将从本任务列表移除。</div>
+        </div>
+        <div class="dialog-actions">
+          <button class="cancel" onclick="closeMask('mask-delete')">取消</button>
+          <button onclick="doDelete()">删除</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+  </div>
+
+  <script>
+    const TASK = {
+      code: "RW330700YJXDY20260728001",
+      name: "基层应急消防小单元数据核采任务20260728",
+      desc: "对应急小单元基础信息进行核对与采集。支持对既有数据编辑、删除，也可新增；提交后回流省平台。",
+      sourceOrg: "金华市社会治理综合指挥中心",
+      sourceLevel: "省级贯通",
+      biz: "平安法治_应急小单元",
+      cycle: "一次",
+      table: "基层应急消防小单元（jcyjzfxdy）",
+      object: "应急小单元",
+      begin: "2026-07-28 09:00",
+      end: "2026-08-03 23:59",
+      endShort: "2026-08-03",
+      remain: "5天12小时"
+    };
+
+    const REGIONS = [
+      {
+        city_name: "金华市", district_name: "永康市",
+        street_name: "东城街道", community_name: "城西社区",
+        adcode: "330784001001",
+        path: "金华市永康市东城街道城西社区"
+      },
+      {
+        city_name: "金华市", district_name: "永康市",
+        street_name: "西城街道", community_name: "花园社区",
+        adcode: "330784002002",
+        path: "金华市永康市西城街道花园社区"
+      },
+      {
+        city_name: "金华市", district_name: "武义县",
+        street_name: "壶山街道", community_name: "熟溪社区",
+        adcode: "330723001003",
+        path: "金华市武义县壶山街道熟溪社区"
+      }
+    ];
+
+    /** 核采数据列表；列表不分待办/已完成 */
+    let records = [
+      {
+        id: "r1",
+        unit_name: "城西网格应急消防小单元",
+        city_name: "金华市", district_name: "永康市",
+        street_name: "东城街道", community_name: "城西社区",
+        adcode: "330784001001",
+        member_count: 12,
+        unit_leader: "张建国",
+        unit_leader_contact: "13800001111",
+        deputy_unit_leader_info: [
+          { name: "李明", concat: "13900002222" },
+          { name: "王芳", concat: "13700003333" }
+        ],
+        submitted: true
+      },
+      {
+        id: "r2",
+        unit_name: "东城商圈应急小单元",
+        city_name: "金华市", district_name: "永康市",
+        street_name: "东城街道", community_name: "城西社区",
+        adcode: "330784001001",
+        member_count: 8,
+        unit_leader: "赵强",
+        unit_leader_contact: "13600004444",
+        deputy_unit_leader_info: [{ name: "陈晨", concat: "13500005555" }],
+        submitted: true
+      },
+      {
+        id: "r3",
+        unit_name: "花园社区应急消防单元",
+        city_name: "金华市", district_name: "永康市",
+        street_name: "西城街道", community_name: "花园社区",
+        adcode: "330784002002",
+        member_count: 15,
+        unit_leader: "周敏",
+        unit_leader_contact: "13400006666",
+        deputy_unit_leader_info: [{ name: "孙磊", concat: "13300007777" }],
+        submitted: false
+      }
+    ];
+
+    let formMode = "create";
+    let editingId = null;
+    let pendingDeleteId = null;
+    let regionPickIndex = 0;
+
+    function go(pageId) {
+      document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+      document.getElementById(pageId).classList.add("active");
+      if (pageId === "page-record-list") renderRecords();
+      if (pageId === "page-task-list") refreshStats();
+    }
+
+    function openTaskDetail() {
+      document.getElementById("sheet-task-name").textContent = TASK.name;
+      document.getElementById("sheet-task-desc").textContent = TASK.desc;
+      document.getElementById("sheet-source-org").textContent = TASK.sourceOrg;
+      document.getElementById("sheet-source-level").textContent = TASK.sourceLevel;
+      document.getElementById("sheet-biz").textContent = TASK.biz;
+      document.getElementById("sheet-cycle").textContent = TASK.cycle;
+      document.getElementById("sheet-code").textContent = TASK.code;
+      document.getElementById("sheet-table").textContent = TASK.table;
+      document.getElementById("sheet-object").textContent = TASK.object;
+      document.getElementById("sheet-begin").textContent = TASK.begin;
+      document.getElementById("sheet-end").textContent = TASK.end;
+      document.getElementById("sheet-total").textContent = String(records.length);
+      document.getElementById("mask-task-detail").classList.add("show");
+    }
+
+    function closeTaskDetail() {
+      document.getElementById("mask-task-detail").classList.remove("show");
+    }
+
+    function toast(msg) {
+      const el = document.getElementById("toast");
+      el.textContent = msg;
+      el.classList.add("show");
+      clearTimeout(toast._t);
+      toast._t = setTimeout(() => el.classList.remove("show"), 1600);
+    }
+
+    function closeMask(id) {
+      document.getElementById(id).classList.remove("show");
+    }
+
+    function refreshStats() {
+      const total = records.length;
+      document.getElementById("card-total").textContent = total;
+      document.getElementById("card-task-name").textContent = TASK.name;
+      document.getElementById("card-remain").textContent = TASK.remain;
+      const endEl = document.querySelector(".task-card .end-time");
+      if (endEl) endEl.textContent = "结束时间：" + TASK.endShort;
+
+      const short = TASK.name.length > 14 ? TASK.name.slice(0, 14) + "…" : TASK.name;
+      document.getElementById("record-nav-title").textContent = short;
+
+      const sheetTotal = document.getElementById("sheet-total");
+      if (sheetTotal) sheetTotal.textContent = String(total);
+    }
+
+    document.getElementById("task-type-tabs").addEventListener("click", (e) => {
+      const tab = e.target.closest(".tab");
+      if (!tab) return;
+      document.querySelectorAll("#task-type-tabs .tab").forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+      if (tab.dataset.tab !== "collect") {
+        toast("原型仅演示数据核采");
+        setTimeout(() => {
+          document.querySelectorAll("#task-type-tabs .tab").forEach(t => t.classList.remove("active"));
+          document.querySelector('#task-type-tabs .tab[data-tab="collect"]').classList.add("active");
+        }, 350);
+      }
+    });
+
+    /** 列表/表单展示：xx区县/xx乡镇/xx村社（不含市） */
+    function regionPath(r) {
+      return [r.district_name, r.street_name, r.community_name].filter(Boolean).join("/");
+    }
+
+    function setRegionFields(r) {
+      document.getElementById("f_city_name").value = r.city_name || "";
+      document.getElementById("f_district_name").value = r.district_name || "";
+      document.getElementById("f_street_name").value = r.street_name || "";
+      document.getElementById("f_community_name").value = r.community_name || "";
+      document.getElementById("f_adcode").value = r.adcode || "";
+      document.getElementById("f_region_text").textContent = regionPath(r) || "请选择";
+      document.getElementById("f_region_text").classList.toggle("ph", !regionPath(r));
+    }
+
+    function renderRecords() {
+      refreshStats();
+      const kw = (document.getElementById("record-search").value || "").trim();
+      const list = records.filter(r => !kw || r.unit_name.includes(kw));
+      const box = document.getElementById("record-list");
+      const empty = document.getElementById("record-empty");
+      const end = document.getElementById("record-end");
+      document.getElementById("list-summary").textContent = `共 ${list.length} 条`;
+
+      if (!list.length) {
+        box.innerHTML = "";
+        empty.style.display = "block";
+        end.style.display = "none";
+        return;
+      }
+      empty.style.display = "none";
+      end.style.display = "block";
+
+      box.innerHTML = list.map(r => `
+        <div class="swipe-row" data-id="${r.id}">
+          <div class="swipe-actions">
+            <button type="button" class="swipe-del" data-del="${r.id}">删除</button>
+          </div>
+          <div class="record-item" data-main="${r.id}">
+            <div class="record-body">
+              <div class="record-title-row">
+                <div class="record-title">${escapeHtml(r.unit_name)}</div>
+              </div>
+              <div class="record-loc">
+                <span>${escapeHtml(regionPath(r))}</span>
+              </div>
+            </div>
+            <div class="chevron">›</div>
+          </div>
+        </div>
+      `).join("");
+
+      bindSwipeRows(box);
+    }
+
+    const SWIPE_OPEN = 76;
+
+    function closeAllSwipes(except) {
+      document.querySelectorAll(".swipe-row .record-item").forEach(el => {
+        if (el !== except) {
+          el.style.transition = "transform .2s ease";
+          el.style.transform = "translateX(0)";
+          el.dataset.open = "0";
+        }
+      });
+    }
+
+    function setSwipeOpen(main, open) {
+      main.style.transition = "transform .2s ease";
+      main.style.transform = open ? `translateX(-${SWIPE_OPEN}px)` : "translateX(0)";
+      main.dataset.open = open ? "1" : "0";
+    }
+
+    function bindSwipeRows(box) {
+      box.querySelectorAll(".swipe-row").forEach(row => {
+        const main = row.querySelector(".record-item");
+        const delBtn = row.querySelector(".swipe-del");
+        let startX = 0, startY = 0, baseX = 0;
+        let dragging = false;
+        let didSwipe = false;
+        let locked = null;
+        let suppressClickUntil = 0;
+
+        delBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          confirmDelete(delBtn.dataset.del);
+        });
+
+        // 阻止左滑结束后浏览器合成的 click 把已打开状态立刻关掉
+        main.addEventListener("click", (e) => {
+          if (Date.now() < suppressClickUntil || didSwipe) {
+            e.preventDefault();
+            e.stopPropagation();
+            didSwipe = false;
+            return;
+          }
+          if (main.dataset.open === "1") {
+            e.preventDefault();
+            e.stopPropagation();
+            setSwipeOpen(main, false);
+            return;
+          }
+          openForm("edit", main.dataset.main);
+        });
+
+        const onStart = (x, y) => {
+          startX = x;
+          startY = y;
+          baseX = main.dataset.open === "1" ? -SWIPE_OPEN : 0;
+          dragging = true;
+          didSwipe = false;
+          locked = null;
+          main.style.transition = "none";
+        };
+
+        const onMove = (x, y, e) => {
+          if (!dragging) return;
+          const dx = x - startX;
+          const dy = y - startY;
+          if (locked === null) {
+            if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+            locked = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
+            if (locked === "x") closeAllSwipes(main);
+          }
+          if (locked !== "x") return;
+          if (e && e.cancelable) e.preventDefault();
+          let next = baseX + dx;
+          if (next > 0) next = 0;
+          if (next < -SWIPE_OPEN) next = -SWIPE_OPEN;
+          if (Math.abs(dx) > 8) didSwipe = true;
+          main.style.transform = `translateX(${next}px)`;
+        };
+
+        const onEnd = (x) => {
+          if (!dragging) return;
+          dragging = false;
+
+          if (locked !== "x") {
+            // 纯点击/纵向滚动：保持原开合状态
+            setSwipeOpen(main, main.dataset.open === "1");
+            return;
+          }
+
+          const current = baseX + (x - startX);
+          const open = current < -SWIPE_OPEN * 0.35;
+          setSwipeOpen(main, open);
+
+          // 屏蔽 touch 后紧随的 click，避免“一闪就关”
+          if (didSwipe || open) {
+            suppressClickUntil = Date.now() + 350;
+          }
+        };
+
+        main.addEventListener("touchstart", (e) => {
+          const t = e.touches[0];
+          onStart(t.clientX, t.clientY);
+        }, { passive: true });
+
+        main.addEventListener("touchmove", (e) => {
+          const t = e.touches[0];
+          onMove(t.clientX, t.clientY, e);
+        }, { passive: false });
+
+        main.addEventListener("touchend", (e) => {
+          const t = e.changedTouches[0];
+          onEnd(t.clientX);
+        });
+
+        main.addEventListener("touchcancel", () => {
+          dragging = false;
+          setSwipeOpen(main, main.dataset.open === "1");
+        });
+
+        // 桌面预览：按住左拖模拟左滑
+        main.addEventListener("mousedown", (e) => {
+          if (e.button !== 0) return;
+          onStart(e.clientX, e.clientY);
+          const move = (ev) => onMove(ev.clientX, ev.clientY, ev);
+          const up = (ev) => {
+            onEnd(ev.clientX);
+            window.removeEventListener("mousemove", move);
+            window.removeEventListener("mouseup", up);
+          };
+          window.addEventListener("mousemove", move);
+          window.addEventListener("mouseup", up);
+        });
+      });
+    }
+
+    function filterRecords() { renderRecords(); }
+
+    function escapeHtml(s) {
+      return String(s)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function openForm(mode, id) {
+      formMode = mode;
+      editingId = id || null;
+      const title = document.getElementById("form-nav-title");
+      const delBtn = document.getElementById("form-delete-btn");
+
+      if (mode === "edit") {
+        title.textContent = "编辑应急小单元";
+        delBtn.style.display = "flex";
+        const r = records.find(x => x.id === id);
+        if (!r) { toast("记录不存在"); return; }
+        fillForm(r);
+      } else {
+        title.textContent = "新增应急小单元";
+        delBtn.style.display = "none";
+        const def = REGIONS[0];
+        fillForm({
+          unit_name: "",
+          city_name: def.city_name,
+          district_name: def.district_name,
+          street_name: def.street_name,
+          community_name: def.community_name,
+          adcode: def.adcode,
+          member_count: "",
+          unit_leader: "",
+          unit_leader_contact: "",
+          deputy_unit_leader_info: [{ name: "", concat: "" }]
+        });
+      }
+      go("page-form");
+    }
+
+    function fillForm(r) {
+      document.getElementById("f_unit_name").value = r.unit_name || "";
+      setRegionFields(r);
+      document.getElementById("f_member_count").value = r.member_count === 0 || r.member_count ? r.member_count : "";
+      document.getElementById("f_unit_leader").value = r.unit_leader || "";
+      document.getElementById("f_unit_leader_contact").value = r.unit_leader_contact || "";
+      const deps = r.deputy_unit_leader_info && r.deputy_unit_leader_info.length
+        ? r.deputy_unit_leader_info
+        : [{ name: "", concat: "" }];
+      renderDeputies(deps);
+    }
+
+    function renderDeputies(list) {
+      const box = document.getElementById("deputy-list");
+      box.innerHTML = list.map((d, i) => `
+        <div class="deputy-card">
+          <div class="deputy-card-hd">
+            <span>副单元长 ${i + 1}</span>
+            <button type="button" onclick="removeDeputy(${i})" ${list.length <= 1 ? 'style="visibility:hidden"' : ""}>删除</button>
+          </div>
+          <div class="deputy-fields">
+            <div class="form-row">
+              <div class="form-label">姓名</div>
+              <input class="form-control" data-field="name" value="${escapeHtml(d.name || "")}" placeholder="请输入" maxlength="32" />
+            </div>
+            <div class="form-row">
+              <div class="form-label">联系方式</div>
+              <input class="form-control" data-field="concat" value="${escapeHtml(d.concat || "")}" placeholder="请输入" maxlength="20" />
+            </div>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function readDeputies() {
+      return Array.from(document.querySelectorAll("#deputy-list .deputy-card")).map(card => ({
+        name: card.querySelector('[data-field="name"]').value.trim(),
+        concat: card.querySelector('[data-field="concat"]').value.trim()
+      }));
+    }
+
+    function addDeputy() {
+      const list = readDeputies();
+      list.push({ name: "", concat: "" });
+      renderDeputies(list);
+    }
+
+    function removeDeputy(idx) {
+      const list = readDeputies();
+      if (list.length <= 1) {
+        toast("至少保留一组");
+        return;
+      }
+      list.splice(idx, 1);
+      renderDeputies(list);
+    }
+
+    function openRegionPicker() {
+      const city = document.getElementById("f_city_name").value;
+      const district = document.getElementById("f_district_name").value;
+      const street = document.getElementById("f_street_name").value;
+      const community = document.getElementById("f_community_name").value;
+      regionPickIndex = Math.max(0, REGIONS.findIndex(r =>
+        r.city_name === city && r.district_name === district &&
+        r.street_name === street && r.community_name === community
+      ));
+      document.getElementById("region-options").innerHTML = REGIONS.map((r, i) => `
+        <div class="sheet-item ${i === regionPickIndex ? "active" : ""}"
+             onclick="regionPickIndex=${i};openRegionPicker()">
+          ${escapeHtml(regionPath(r))}
+        </div>
+      `).join("");
+      document.getElementById("mask-region").classList.add("show");
+    }
+
+    function applyRegion() {
+      setRegionFields(REGIONS[regionPickIndex]);
+      closeMask("mask-region");
+    }
+
+    function readForm() {
+      return {
+        unit_name: document.getElementById("f_unit_name").value.trim(),
+        city_name: document.getElementById("f_city_name").value.trim(),
+        district_name: document.getElementById("f_district_name").value.trim(),
+        street_name: document.getElementById("f_street_name").value.trim(),
+        community_name: document.getElementById("f_community_name").value.trim(),
+        adcode: document.getElementById("f_adcode").value.trim(),
+        member_count: document.getElementById("f_member_count").value,
+        unit_leader: document.getElementById("f_unit_leader").value.trim(),
+        unit_leader_contact: document.getElementById("f_unit_leader_contact").value.trim(),
+        deputy_unit_leader_info: readDeputies()
+      };
+    }
+
+    function validate(data) {
+      if (!data.unit_name) return "请填写名称";
+      if (!data.district_name || !data.street_name || !data.community_name) return "请选择所属村社";
+      if (data.member_count === "" || data.member_count === null) return "请填写成员数量";
+      if (Number(data.member_count) < 0 || !Number.isFinite(Number(data.member_count))) return "成员数量不正确";
+      if (!data.unit_leader) return "请填写单元长";
+      if (!data.unit_leader_contact) return "请填写单元长联系方式";
+      const deputies = data.deputy_unit_leader_info.filter(d => d.name || d.concat);
+      if (!deputies.length) return "请至少填写一名副单元长";
+      for (const d of deputies) {
+        if (!d.name || !d.concat) return "副单元长姓名和联系方式需成对填写";
+      }
+      return "";
+    }
+
+    function submitForm() {
+      const data = readForm();
+      const err = validate(data);
+      if (err) { toast(err); return; }
+
+      const payload = {
+        ...data,
+        member_count: Number(data.member_count),
+        deputy_unit_leader_info: data.deputy_unit_leader_info.filter(d => d.name && d.concat),
+        task_code: TASK.code,
+        submitted: true
+      };
+
+      if (formMode === "edit") {
+        const idx = records.findIndex(r => r.id === editingId);
+        if (idx >= 0) records[idx] = { ...records[idx], ...payload };
+        toast("提交成功");
+        console.log("[uploadFormData update]", payload);
+      } else {
+        records.unshift({ id: "r" + Date.now(), ...payload });
+        toast("新增成功");
+        console.log("[uploadFormData add]", payload);
+      }
+      refreshStats();
+      setTimeout(() => go("page-record-list"), 350);
+    }
+
+    function confirmDelete(id) {
+      pendingDeleteId = id || editingId;
+      if (!pendingDeleteId) return;
+      const r = records.find(x => x.id === pendingDeleteId);
+      document.getElementById("delete-msg").textContent =
+        `确定删除「${r ? r.unit_name : "该记录"}」吗？`;
+      document.getElementById("mask-delete").classList.add("show");
+    }
+
+    function doDelete() {
+      if (!pendingDeleteId) return;
+      records = records.filter(r => r.id !== pendingDeleteId);
+      closeMask("mask-delete");
+      toast("已删除");
+      pendingDeleteId = null;
+      refreshStats();
+      if (document.getElementById("page-form").classList.contains("active")) {
+        go("page-record-list");
+      } else {
+        renderRecords();
+      }
+    }
+
+    refreshStats();
+    renderRecords();
+  </script>
+</body>
+</html>

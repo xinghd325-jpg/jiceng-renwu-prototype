@@ -1,0 +1,10 @@
+.DS_Store
+.~*
+*.tmp
+.idea/
+.vscode/
+node_modules/
+
+# GitHub 单文件上限 100MB，需求说明书本地保留不入库
+基层智治系统需求说明书*.doc
+*.doc
