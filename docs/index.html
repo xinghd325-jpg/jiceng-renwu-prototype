@@ -1,138 +1,36 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
-<!-- jhdx-gate -->
-<script>
-(function () {
-  var KEY = "jhdx_gate_v1";
-  var HASH = "31a93a479fcc8b3e53735a68ee6dc35b38452a653a8e9471e1c2b15dedf1d378";
-  function sha256(s) {
-    if (window.crypto && crypto.subtle && window.TextEncoder) {
-      return crypto.subtle.digest("SHA-256", new TextEncoder().encode(s)).then(function (buf) {
-        return Array.from(new Uint8Array(buf)).map(function (b) {
-          return ("0" + b.toString(16)).slice(-2);
-        }).join("");
-      });
-    }
-    return Promise.resolve("");
-  }
-  function pass() {
-    sessionStorage.setItem(KEY, "1");
-    var g = document.getElementById("jhdx-gate");
-    if (g && g.parentNode) g.parentNode.removeChild(g);
-    document.documentElement.style.visibility = "";
-  }
-  if (sessionStorage.getItem(KEY) === "1") return;
-  document.documentElement.style.visibility = "hidden";
-  function boot() {
-    if (sessionStorage.getItem(KEY) === "1") {
-      document.documentElement.style.visibility = "";
-      return;
-    }
-    if (document.getElementById("jhdx-gate")) return;
-    var g = document.createElement("div");
-    g.id = "jhdx-gate";
-    g.innerHTML =
-      '<style>#jhdx-gate{position:fixed;inset:0;z-index:2147483647;background:linear-gradient(180deg,#1564e8 0%,#1677FF 42%,#f0f2f5 42%);display:flex;align-items:center;justify-content:center;font-family:-apple-system,"Microsoft YaHei","PingFang SC",sans-serif}#jhdx-gate .box{width:380px;max-width:calc(100vw - 32px);background:#fff;border-radius:10px;padding:28px 24px 24px;box-shadow:0 12px 32px rgba(15,40,80,.18)}#jhdx-gate h2{margin:0 0 8px;font-size:18px;color:rgba(0,0,0,.88)}#jhdx-gate p{margin:0 0 16px;font-size:13px;color:rgba(0,0,0,.55);line-height:1.6}#jhdx-gate input{width:100%;height:36px;border:1px solid #d0d7e2;border-radius:6px;padding:0 12px;font-size:14px;box-sizing:border-box}#jhdx-gate button{margin-top:12px;width:100%;height:36px;border:0;border-radius:6px;background:#1677FF;color:#fff;font-size:14px;font-weight:600;cursor:pointer}#jhdx-gate .err{color:#ff4d4f;font-size:12px;margin-top:8px;min-height:18px}</style>' +
-      '<div class="box"><h2>访问验证</h2><p>该原型已加密，请输入访问密码后继续。</p><input type="password" id="jhdx-pass" placeholder="请输入访问密码" autocomplete="current-password"><div class="err" id="jhdx-err"></div><button type="button" id="jhdx-btn">进入</button></div>';
-    (document.body || document.documentElement).appendChild(g);
-    document.documentElement.style.visibility = "";
-    var input = document.getElementById("jhdx-pass");
-    var err = document.getElementById("jhdx-err");
-    function ok() {
-      var v = (input && input.value) || "";
-      sha256(v).then(function (h) {
-        if (v === "jhdx" || h === HASH) pass();
-        else if (err) err.textContent = "密码错误";
-      });
-    }
-    document.getElementById("jhdx-btn").onclick = ok;
-    if (input) {
-      input.addEventListener("keydown", function (e) {
-        if (e.key === "Enter") ok();
-      });
-      setTimeout(function () { input.focus(); }, 50);
-    }
-  }
-  if (document.body) boot();
-  else document.addEventListener("DOMContentLoaded", boot);
-})();
-</script>
-<!-- /jhdx-gate -->
-
+  <meta name="robots" content="noindex, nofollow, noarchive">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>省基层任务 · 数据核采原型</title>
+  <title>Preview</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       min-height: 100vh;
-      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
-      background: linear-gradient(160deg, #0b5fff 0%, #1677ff 40%, #e8f3ff 40%, #f5f7fa 100%);
-      color: #262626;
-      padding: 48px 20px 64px;
+      font-family: -apple-system, sans-serif;
+      background: #f5f7fa;
+      padding: 48px 20px;
     }
-    .wrap { max-width: 720px; margin: 0 auto; }
-    h1 { color: #fff; font-size: 28px; margin-bottom: 8px; }
-    .sub { color: rgba(255,255,255,.85); font-size: 14px; margin-bottom: 32px; line-height: 1.6; }
-    .card {
+    .wrap { max-width: 520px; margin: 0 auto; }
+    a {
+      display: block;
       background: #fff;
-      border-radius: 12px;
-      padding: 24px;
-      margin-bottom: 16px;
-      box-shadow: 0 8px 24px rgba(0,0,0,.08);
-    }
-    .card h2 { font-size: 18px; margin-bottom: 8px; }
-    .card p { font-size: 13px; color: #8c8c8c; line-height: 1.6; margin-bottom: 16px; }
-    .btn {
-      display: inline-block;
-      background: #1677ff;
-      color: #fff;
+      border: 1px solid #e5eaf0;
+      border-radius: 8px;
+      padding: 16px 18px;
+      margin-bottom: 12px;
       text-decoration: none;
-      padding: 10px 20px;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 500;
+      color: #1677ff;
+      font-size: 15px;
     }
-    .btn:hover { background: #0958d9; }
-    .btn.secondary { background: #fff; color: #1677ff; border: 1px solid #1677ff; margin-left: 8px; }
-    .tip {
-      background: #fff7e6;
-      border: 1px solid #ffe58f;
-      border-radius: 8px;
-      padding: 12px 14px;
-      font-size: 12px;
-      color: #ad6800;
-      line-height: 1.6;
-    }
-    .tip strong { color: #f5222d; }
-    footer { margin-top: 24px; font-size: 12px; color: rgba(255,255,255,.7); }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <h1>省基层任务 · 数据核采原型</h1>
-    <p class="sub">供产品与研发对照的交互原型。推送 GitHub 后可通过本页实时查看最新版本。</p>
-
-    <div class="card">
-      <h2>PC 端原型</h2>
-      <p>省基层任务列表、手动下发、辖区任务 / 我的任务、数据管理（应急小单元）、进度统计等。</p>
-      <a class="btn" href="./pc/">打开 PC 端</a>
-    </div>
-
-    <div class="card">
-      <h2>移动端原型</h2>
-      <p>我的任务 · 数据核采：任务卡片、数据列表、左滑删除、新增/编辑表单等。</p>
-      <a class="btn" href="./mobile/">打开移动端</a>
-    </div>
-
-    <div class="tip">
-      <strong>开发说明</strong>
-      本站由 GitHub Pages 托管。产品更新原型并 <code>git push</code> 后，约 1～2 分钟刷新即可看到最新内容。
-      建议研发收藏本入口页，不要只收藏本地文件路径。
-    </div>
-
-    <footer>基层智治 · 省基层任务模块原型</footer>
+    <a href="./pc/">PC</a>
+    <a href="./mobile/">Mobile</a>
   </div>
 </body>
 </html>
