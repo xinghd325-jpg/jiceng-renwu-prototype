@@ -1,36 +1,89 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta name="robots" content="noindex, nofollow, noarchive">
-  <meta charset="UTF-8" />
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Preview</title>
+  <title>基层组织 · 原型入口</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       min-height: 100vh;
-      font-family: -apple-system, sans-serif;
-      background: #f5f7fa;
-      padding: 48px 20px;
+      font-family: -apple-system, "Microsoft YaHei", "PingFang SC", sans-serif;
+      background: linear-gradient(180deg, #1564e8 0%, #1677FF 28%, #f0f2f5 28%);
+      color: rgba(0,0,0,0.88);
     }
-    .wrap { max-width: 520px; margin: 0 auto; }
-    a {
-      display: block;
+    .wrap { max-width: 760px; margin: 0 auto; padding: 40px 20px 64px; }
+    .brand { color: #fff; margin-bottom: 28px; }
+    .brand .kicker { font-size: 12px; opacity: 0.8; letter-spacing: 0.6px; }
+    .brand h1 { font-size: 22px; font-weight: 700; margin-top: 6px; }
+    .brand p { margin-top: 8px; font-size: 13px; opacity: 0.88; line-height: 1.6; }
+    .mod {
       background: #fff;
       border: 1px solid #e5eaf0;
-      border-radius: 8px;
-      padding: 16px 18px;
-      margin-bottom: 12px;
+      border-radius: 10px;
+      padding: 20px 20px 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 8px 24px rgba(15, 40, 80, 0.08);
+    }
+    .mod-name {
+      font-size: 12px;
+      color: #1677FF;
+      background: #e8f3ff;
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-bottom: 8px;
+    }
+    .mod h2 { font-size: 18px; margin-bottom: 6px; }
+    .mod .desc { font-size: 13px; color: rgba(0,0,0,0.55); line-height: 1.6; margin-bottom: 14px; }
+    .links { display: flex; flex-wrap: wrap; gap: 8px; }
+    .links a {
+      display: inline-block;
       text-decoration: none;
-      color: #1677ff;
-      font-size: 15px;
+      background: #1677FF;
+      color: #fff;
+      height: 34px;
+      line-height: 34px;
+      padding: 0 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .links a.ghost {
+      background: #fff;
+      color: #1677FF;
+      border: 1px solid #91caff;
     }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <a href="./pc/">PC</a>
-    <a href="./mobile/">Mobile</a>
+    <div class="brand">
+      <div class="kicker">基层组织</div>
+      <h1>原型入口</h1>
+      <p>按模块打开对应原型。后续基层组织相关原型都加在本页。</p>
+    </div>
+
+    <div class="mod">
+      <span class="mod-name">模块</span>
+      <h2>社会工作服务端</h2>
+      <p class="desc">凝聚群众服务：通知公告、活动、三务公开、服务项目、征集测评、议题协商、设施力量、帮扶统计等。</p>
+      <div class="links">
+        <a href="https://xinghd325-jpg.github.io/jiceng-sws-prototype/pc.html">管理端 PC</a>
+        <a class="ghost" href="https://xinghd325-jpg.github.io/jiceng-sws-prototype/h5.html">群众端 H5</a>
+      </div>
+    </div>
+
+    <div class="mod">
+      <span class="mod-name">模块</span>
+      <h2>省基层任务（应急小单元）</h2>
+      <p class="desc">数据核采：任务下发、辖区任务、我的任务、应急小单元数据管理、进度统计等。</p>
+      <div class="links">
+        <a href="https://xinghd325-jpg.github.io/jiceng-renwu-prototype/pc/">PC 端</a>
+        <a class="ghost" href="https://xinghd325-jpg.github.io/jiceng-renwu-prototype/mobile/">移动端</a>
+      </div>
+    </div>
   </div>
 </body>
 </html>
